@@ -51,7 +51,7 @@ configure() {
 		-optimize-size -no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv \
 		-DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-nomake tests -nomake examples \
-		-no-feature-sql -no-feature-xml -no-feature-dbus -no-feature-printdialog -no-feature-printer \
+		-no-feature-sql -no-feature-xml -no-feature-dbus -no-feature-printdialog -no-feature-printer -no-feature-printsupport\
 		-no-feature-linguist -no-feature-designer -no-feature-assistant -no-feature-pixeltool "$*"
 }
 

@@ -14,7 +14,7 @@ pkg_add gawk \
 	xz \
 	zstd \
 	gtar-1.35p1 \
-	llvm-21.1.2p0
+	llvm-20.1.8p1
 
-export CC=clang-21
-export CXX=clang++-21
+export CC=/usr/local/bin/clang-20
+export CXX=/usr/local/bin/clang++-20
