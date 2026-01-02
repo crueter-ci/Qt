@@ -45,7 +45,7 @@ configure() {
 		-submodules qtbase,qtdeclarative,qttools \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" \
-		-optimize-size -no-feature-icu -release -no-zstd -no-feature-qml-network \
+		-optimize-size -no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv \
 		-DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" "$*"
 }
 

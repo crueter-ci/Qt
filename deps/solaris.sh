@@ -10,4 +10,5 @@ pkg install \
 	compress/zstd \
 	unzip \
 	xz \
-	mesa
+	mesa \
+	gnu-binutils

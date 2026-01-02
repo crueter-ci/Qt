@@ -12,3 +12,5 @@ pacman -Syu --needed --noconfirm \
 	glu \
 	libglvnd \
 	mesa
+
+df -h

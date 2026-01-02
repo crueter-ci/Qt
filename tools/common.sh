@@ -20,7 +20,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd cmake xz ninja unzip
+must_install curl zstd cmake xz ninja unzip ar
 
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;

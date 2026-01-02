@@ -16,4 +16,4 @@ pkg_add gawk \
 	xz \
 	zstd \
 	gtar-1.35p1 \
-	coreutils
+	binutils
