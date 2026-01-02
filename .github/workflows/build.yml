@@ -202,7 +202,7 @@ jobs:
 
     steps:
       - name: Install sudo
-        run: pacman -Syu sudo
+        run: pacman -Syu --needed --noconfirm sudo
 
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
