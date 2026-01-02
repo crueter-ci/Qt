@@ -185,7 +185,6 @@ jobs:
   linux:
     name: "Linux (${{ matrix.arch }})"
     runs-on: ${{ matrix.runs-on }}
-    container: ghcr.io/pkgforge-dev/archlinux:latest
     strategy:
       fail-fast: false
       matrix:
@@ -201,9 +200,6 @@ jobs:
       PLATFORM: linux
 
     steps:
-      - name: Install sudo
-        run: pacman -Syu --needed --noconfirm sudo
-
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
         with:
@@ -215,16 +211,25 @@ jobs:
 
       - uses: actions/checkout@v4
 
+      - name: Start container
+        run: |
+          docker run -d --name arch-build -v ${{ github.workspace }}:/workspace -w /workspace ghcr.io/pkgforge-dev/archlinux:latest tail -f /dev/null
+
       - name: Install sccache
         uses: Eden-CI/sccache-action@v0.0.1
         with:
           disable_annotations: true
 
       - name: Deps
-        run: ./deps/linux.sh
+        run: docker exec arch-build ./deps/linux.sh
 
       - name: Build
-        run: ./tools/build.sh
+        run: docker exec arch-build ./tools/build.sh
+
+      - name: Copy artifacts from container
+        run: |
+          docker cp arch-build:/workspace/artifacts .
+          docker stop arch-build
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4

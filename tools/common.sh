@@ -61,7 +61,7 @@ extract() {
 	# qt6windows7 patch
 	echo "-- Patching for Windows 7..."
 	_repo="qt6windows7"
-	_sha="f9d3d8fce1e09326ff99a75adc66707497446508"
+	_sha="ef793a16845bf9850097ad648fbb78987cc91d66"
 
 	curl -L "https://github.com/crueter/$_repo/archive/$_sha.tar.gz" -o w7.tar.gz
 	$TAR xf w7.tar.gz
