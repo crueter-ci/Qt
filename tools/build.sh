@@ -20,9 +20,15 @@ configure() {
 	FLAGS="-fno-unwind-tables -fomit-frame-pointer -fno-pie"
 	if [ "$PLATFORM" = "windows" ]; then
 		FLAGS="/O2 /Oy /EHs- /EHc- /DYNAMICBASE:NO"
-		LTO="-no-ltcg"
+		set -- "$@" -DQT_BUILD_QDOC=OFF
 	else
-		LTO="-reduce-exports -ltcg"
+		LTO="-reduce-exports"
+	fi
+
+	if [ "$PLATFORM" = mingw ]; then
+		LTO="$LTO -no-ltcg"
+	else
+		LTO="$LTO -ltcg"
 	fi
 
 	if [ "$CCACHE" = true ]; then

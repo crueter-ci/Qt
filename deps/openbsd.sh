@@ -15,4 +15,5 @@ pkg_add gawk \
 	ninja \
 	xz \
 	zstd \
-	gtar-1.35p1
+	gtar-1.35p1 \
+	coreutils
