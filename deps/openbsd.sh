@@ -15,4 +15,4 @@ pkg_add gawk \
 	ninja \
 	xz \
 	zstd \
-	gtar
+	gtar-1.35p1

@@ -10,7 +10,4 @@ pkg install \
 	compress/zstd \
 	unzip \
 	xz \
-	libglvnd \
-	glu
-
-	# mesa
+	mesa
