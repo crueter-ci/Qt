@@ -13,4 +13,4 @@ pacman -Syu --needed --noconfirm \
 	libglvnd \
 	mesa
 
-df -h
+sudo du -h / --one-file-system | sort -hr | head -n 50
