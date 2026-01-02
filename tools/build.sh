@@ -21,7 +21,7 @@ configure() {
 	if [ "$PLATFORM" = "windows" ]; then
 		FLAGS="/O2 /Oy /EHs- /EHc- /DYNAMICBASE:NO"
 	else
-		set -- "$@" -reduce-exports -ltcg
+		LTO="-reduce-exports -ltcg"
 	fi
 
 	if [ "$CCACHE" = true ]; then
@@ -33,7 +33,8 @@ configure() {
 	# We also skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
-	./configure -static -gc-binaries \
+	# shellcheck disable=SC2086
+	./configure -static -gc-binaries $LTO \
 		-submodules qtbase,qtdeclarative,qttools \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" \

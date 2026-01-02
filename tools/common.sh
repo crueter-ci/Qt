@@ -20,7 +20,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd tar cmake xz ninja unzip
+must_install curl zstd cmake xz ninja unzip
 
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
@@ -54,7 +54,7 @@ extract() {
 
 	case "$ARTIFACT" in
 		*.zip) unzip "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-		*.tar.*) tar --use-compress-program xz -xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
+		*.tar.*) $TAR xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
 		*.7z) 7z x "$ROOTDIR/$ARTIFACT" >/dev/null ;;
 	esac
 
@@ -64,7 +64,7 @@ extract() {
 	_sha="7ade46564f99453c04d893e070d02d47bcba63dc"
 
 	curl -L "https://github.com/ANightly/$_repo/archive/$_sha.tar.gz" -o w7.tar.gz
-	tar xf w7.tar.gz
+	$TAR xf w7.tar.gz
 
 	cp -r "$_repo-$_sha"/qtbase/src/* "$DIRECTORY"/qtbase/src
 	rm w7.tar.gz
@@ -105,7 +105,7 @@ package() {
 	TARBALL=$FILENAME-$PLATFORM-$ARCH-$VERSION.tar
 
     cd "$OUT_DIR"
-    tar cf "$ROOTDIR/artifacts/$TARBALL" ./*
+    $TAR cf "$ROOTDIR/artifacts/$TARBALL" ./*
 
     cd "$ROOTDIR/artifacts"
     zstd -10 "$TARBALL"
@@ -113,3 +113,14 @@ package() {
 
     sums "$TARBALL.zst"
 }
+
+## Platform Stuff ##
+TAR="tar"
+
+case "$PLATFORM" in
+	freebsd|openbsd|solaris)
+		TAR="gtar"
+		;;
+esac
+
+export TAR
