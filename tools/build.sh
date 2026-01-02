@@ -45,8 +45,6 @@ configure() {
 	# TEST PLEASE DO NOT MERGE THIS
 	LTO="-no-ltcg"
 
-	set +e
-
 	# These are the recommended configuration options from Qt
 	# We also skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
@@ -60,8 +58,6 @@ configure() {
 		-no-feature-sql -no-feature-xml -no-feature-dbus -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
 		-no-feature-linguist -no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}"
-
-	set -e
 }
 
 build() {
