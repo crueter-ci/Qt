@@ -136,6 +136,9 @@ jobs:
             chmod a+x ./tools/build.sh
 
             ./deps/solaris.sh
+
+            export SCCACHE_PATH=$(which sccache)
+
             ./tools/build.sh
 
       - name: Build (FreeBSD)
@@ -151,6 +154,7 @@ jobs:
             chmod a+x ./tools/build.sh
 
             ./deps/freebsd.sh
+            export SCCACHE_PATH=$(which sccache)
 
             bash -e ./tools/build.sh
 
@@ -167,6 +171,7 @@ jobs:
             chmod a+x ./tools/build.sh
 
             ./deps/openbsd.sh
+            export SCCACHE_PATH=$(which sccache)
 
             # OpenBSD compiler situation is sad
             bash -e ./tools/build.sh

@@ -17,13 +17,20 @@ set -e
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
-	FLAGS="-fno-unwind-tables -fomit-frame-pointer -fno-pie"
+	FLAGS="-fno-unwind-tables -fomit-frame-pointer"
 	if [ "$PLATFORM" = "windows" ]; then
-		FLAGS="/O2 /Oy /EHs- /EHc- /DYNAMICBASE:NO /Zd"
+		FLAGS="/Oy /EHs- /EHc- /DYNAMICBASE:NO /Zd"
 		set -- "$@" -DQT_BUILD_QDOC=OFF
 	else
 		LTO="-reduce-exports"
 	fi
+
+	# PIC/PIE handling
+	case "$PLATFORM" in
+		openbsd|linux) FLAGS="$FLAGS -fPIC" ;;
+		freebsd|macos|mingw) FLAGS="$FLAGS -fno-pie" ;;
+		*) ;;
+	esac
 
 	if [ "$PLATFORM" = mingw ]; then
 		LTO="$LTO -no-ltcg"
@@ -54,7 +61,7 @@ configure() {
 		-optimize-size -no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv \
 		-nomake tests -nomake examples \
 		-no-feature-sql -no-feature-xml -no-feature-dbus -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
-		-no-feature-linguist -no-feature-designer -no-feature-assistant -no-feature-pixeltool -- "$*" \
+		-no-feature-linguist -no-feature-designer -no-feature-assistant -no-feature-pixeltool -- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}"
 
 	if [ $? -ne 0 ]; then

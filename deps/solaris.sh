@@ -11,4 +11,5 @@ pkg install \
 	unzip \
 	xz \
 	mesa \
-	gnu-binutils
+	gnu-binutils \
+	sccache

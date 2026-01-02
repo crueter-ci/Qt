@@ -13,4 +13,5 @@ pkg install -y \
 	libGLU \
 	libglvnd \
 	mesa-libs \
-	gtar
+	gtar \
+	sccache
