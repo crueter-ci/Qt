@@ -17,7 +17,7 @@ set -e
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
-	FLAGS="-fno-unwind-tables -fomit-frame-pointer -g0 -Os"
+	FLAGS="-fno-unwind-tables -g0"
 	if [ "$PLATFORM" = "windows" ]; then
 		FLAGS="/Oy /EHs- /EHc- /DYNAMICBASE:NO"
 		set -- "$@" -DQT_BUILD_QDOC=OFF
@@ -32,7 +32,7 @@ configure() {
 		*) ;;
 	esac
 
-	if [ "$PLATFORM" = macos ] && [ "$PLATFORM" != windows ]; then
+	if [ "$PLATFORM" != macos ] && [ "$PLATFORM" != windows ]; then
 		FLAGS="$FLAGS -Wl,--gc-sections"
 	fi
 
@@ -40,6 +40,7 @@ configure() {
 		LTO="$LTO -no-ltcg"
 	else
 		LTO="$LTO -ltcg"
+		FLAGS="$FLAGS -fomit-frame-pointer"
 	fi
 
 	if [ "$CCACHE" = true ]; then
