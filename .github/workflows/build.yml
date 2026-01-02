@@ -205,6 +205,8 @@ jobs:
           echo "-- Free Space before:"
           df -h
 
+          echo "$DOTNET_ROOT"
+
           echo "-- Dotnet"
           sudo rm -rf /usr/share/dotnet
           sudo rm -rf /usr/local/share/dotnet # ???
@@ -233,7 +235,7 @@ jobs:
         run: docker exec arch-build ./deps/linux.sh
 
       - name: Build
-        run: docker exec arch-build sh -c 'PLATFORM=linux ARCH=${{ matrix.arch }} ./tools/build.sh'
+        run: docker exec arch-build sh -c 'PLATFORM=linux ARCH=${{ matrix.arch }} SCCACHE_PATH=$(which ccache) SCCACHE_GHA_ENABLED=true CCACHE=true ./tools/build.sh'
 
       - name: Copy artifacts from container
         run: |

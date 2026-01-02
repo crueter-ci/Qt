@@ -11,4 +11,5 @@ pacman -Syu --needed --noconfirm \
 	python3 \
 	glu \
 	libglvnd \
-	mesa
+	mesa \
+	sccache
