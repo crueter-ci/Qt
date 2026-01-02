@@ -51,12 +51,16 @@ jobs:
       - uses: lukka/get-cmake@latest
         if: matrix.platform == 'windows'
 
+      - name: Fix MSVC being stupid
+        if: matrix.platform == 'windows'
+        run: |
+          # WHAT THE FUCK
+          mklink /D "C:\Program Files\Microsoft Visual Studio\2022\Community" "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+
       - name: Install zstd
         if: matrix.platform == 'windows'
         run: |
           choco install zstandard
-          # WHAT THE FUCK
-          mklink /D "C:\Program Files\Microsoft Visual Studio\2022\Community" "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2

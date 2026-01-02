@@ -17,7 +17,7 @@ set -e
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
-	FLAGS="-fno-unwind-tables -fomit-frame-pointer -g0 -Wl,--gc-sections -Os"
+	FLAGS="-fno-unwind-tables -fomit-frame-pointer -g0 -Os"
 	if [ "$PLATFORM" = "windows" ]; then
 		FLAGS="/Oy /EHs- /EHc- /DYNAMICBASE:NO"
 		set -- "$@" -DQT_BUILD_QDOC=OFF
@@ -31,6 +31,10 @@ configure() {
 		freebsd|macos|mingw) FLAGS="$FLAGS -fno-pie" ;;
 		*) ;;
 	esac
+
+	if [ "$PLATFORM" = macos ] && [ "$PLATFORM" != windows ]; then
+		FLAGS="$FLAGS -Wl,--gc-sections"
+	fi
 
 	if [ "$PLATFORM" = mingw ]; then
 		LTO="$LTO -no-ltcg"
