@@ -215,6 +215,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Deps
+        run: ./deps/linux.sh
+
       - name: Build
         run: ./tools/build.sh
 
@@ -238,6 +241,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
+
+      - name: Get Dependencies
+        run: |
+          chmod a+x ./deps/macos.sh
+          ./deps/macos.sh
 
       - name: Build
         run: |
