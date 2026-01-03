@@ -235,9 +235,15 @@ jobs:
 
       - name: Build
         run: |
+          export SCCACHE_GHA_ENABLED=true
+          export SCCACHE_DIR=$GITHUB_WORKSPACE/.sccache
+
           env | grep -v HOME > .env
           cat .env
-          docker exec --env-file ".env" -e ACTIONS_CACHE_URL="${ACTIONS_CACHE_URL}" arch-build sh -c 'SCCACHE_PATH=$(which sccache) ./tools/build.sh'
+
+          docker exec --env-file '.env' arch-build bash -c 'sccache --start-server; sccache --show-stats'
+
+          docker exec --env-file ".env" arch-build sh -c 'SCCACHE_PATH=$(which sccache) ./tools/build.sh'
 
       - name: Copy artifacts from container
         run: |

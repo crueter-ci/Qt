@@ -62,7 +62,6 @@ configure() {
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# shellcheck disable=SC2086
-	./configure -help | grep -iC4 doc
 	./configure -static -gc-binaries $LTO \
 		-submodules qtbase,qtdeclarative,qttools,qtmultimedia -optimize-size -no-pch \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc \

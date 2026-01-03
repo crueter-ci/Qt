@@ -21,6 +21,8 @@ ROOTDIR="$PWD"
 : "${OUT_DIR:=$PWD/out}"
 : "${MACOSX_DEPLOYMENT_TARGET:=11.0}"
 
+mkdir -p "$ROOTDIR"/artifacts
+
 ## Command Checks ##
 
 must_install() {
@@ -78,16 +80,20 @@ extract() {
 		rm w7.tar.gz
 	fi
 
+	echo "$OPENBSD_PATCHES_URL"
+
 	# openbsd patches
 	if [ "$PLATFORM" = "openbsd" ]; then
+		cd "$ROOTDIR"
 		curl -L "$OPENBSD_PATCHES_URL" -o "$ROOTDIR/artifacts/openbsd-patches.tar.zst"
-		./mk/openbsd.sh apply
+		mk/openbsd.sh apply
 	fi
 
 	# solaris patches
 	if [ "$PLATFORM" = "solaris" ]; then
+		cd "$ROOTDIR"
 		curl -L "$SOLARIS_PATCHES_URL" -o "$ROOTDIR/artifacts/solaris-patches.tar.zst"
-		./mk/solaris.sh apply
+		mk/solaris.sh apply
 	fi
 }
 
