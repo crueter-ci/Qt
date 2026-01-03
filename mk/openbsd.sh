@@ -27,7 +27,7 @@ if [ "$1" = "apply" ]; then
 		$TAR xf "$out" -C "$ROOTDIR"
 	fi
 
-	qtdir="$ROOTDIR/qt-$VERSION"
+	qtdir="$ROOTDIR/build/qt-$VERSION"
 
 	find "$_patchdir" -type d -not -name patches | while read -r dir; do
 		module=$(echo "$dir" | rev | cut -d'/' -f1 | rev)
