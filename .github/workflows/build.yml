@@ -225,7 +225,7 @@ jobs:
         run: |
           docker run -d --name arch-build \
             -v ${{ github.workspace }}:/workspace \
-            -w /workspace
+            -w /workspace \
             ghcr.io/pkgforge-dev/archlinux:latest \
             tail -f /dev/null
 
