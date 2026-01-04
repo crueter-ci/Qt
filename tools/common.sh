@@ -33,6 +33,10 @@ must_install() {
 
 must_install curl zstd cmake xz ninja unzip ar
 
+if [ "$PLATFORM" = "openbsd" ]; then
+	must_install llvm-ar llvm-ranlib
+fi
+
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
 	*.tar.*) ;;

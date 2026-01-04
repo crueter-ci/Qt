@@ -16,4 +16,5 @@ pkg_add gawk \
 	gtar-1.35p1 \
 	ccache \
 	binutils \
-	pkgconf
+	pkgconf \
+	llvm-19.1.7p9

@@ -201,7 +201,6 @@ jobs:
       PLATFORM: linux
 
     steps:
-
       - name: Maximize build space
         uses: AdityaGarg8/remove-unwanted-software@v5
         with:
@@ -215,33 +214,14 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - name: Start container
-        run: |
-          docker run -d --name arch-build \
-            -v ${{ github.workspace }}:/workspace \
-            -w /workspace \
-            ghcr.io/pkgforge-dev/archlinux:latest \
-            tail -f /dev/null
-
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
 
       - name: Deps
-        run: docker exec arch-build ./deps/linux.sh
+        run: ./deps/linux.sh
 
       - name: Build
-        run: |
-          env | grep -v HOME > .env
-          cat .env
-
-          docker exec --env-file ".env" --user "$(id -u):$(id -g)" arch-build sh -c './tools/build.sh'
-
-      - name: Copy artifacts from container
-        run: |
-          docker cp arch-build:/workspace/artifacts .
-          # some files will still be owned by root because docker SUCKS
-          sudo chown -R $(id -u):$(id -g) artifacts || true
-          docker stop arch-build
+        run: ./tools/build.sh
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
