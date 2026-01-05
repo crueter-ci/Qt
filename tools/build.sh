@@ -13,23 +13,15 @@ set -e
 
 ## Build Functions ##
 
+CCACHE_PATH=$(which ccache || echo "ccache")
 if [ "$PLATFORM" = windows ] || [ "$PLATFORM" = mingw ]; then
-	CCACHE_PATH=$(which sccache)
 	CCACHE_PATH=$(cygpath -w "$CCACHE_PATH")
-else
-	CCACHE_PATH=$(which ccache)
 fi
-
-[ -z "$CCACHE_PATH" ] && CCACHE_PATH=$(which ccache || which sccache || echo "ccache")
 
 echo "Using ccache at: $CCACHE_PATH"
 
 show_stats() {
-	if [ "$PLATFORM" = "windows" ]; then
-		"$CCACHE_PATH" --show-stats
-	else
-		"$CCACHE_PATH" -s
-	fi
+	"$CCACHE_PATH" -s
 }
 
 # cmake

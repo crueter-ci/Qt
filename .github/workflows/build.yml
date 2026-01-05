@@ -39,9 +39,8 @@ jobs:
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
-          variant: sccache
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          restore-keys: ${{ env.PLATFORM }}-
+          restore-keys: ${{ env.PLATFORM }}
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
