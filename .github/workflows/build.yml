@@ -224,6 +224,7 @@ jobs:
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          max-size: 2G
 
       - name: Deps
         run: ./deps/linux.sh
