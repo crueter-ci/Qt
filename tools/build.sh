@@ -84,9 +84,11 @@ configure() {
 			;;
 		*)
 			dqpa=xcb
-			LTO="$LTO -xcb -qpa xcb;wayland -gtk"
+			QPA="-xcb -qpa xcb;wayland -gtk"
 			;;
 	esac
+
+	QPA="$QPA -default-qpa $dqpa"
 
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
@@ -110,7 +112,7 @@ configure() {
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# shellcheck disable=SC2086
-	./configure $LTO -nomake tests -nomake examples -optimize-size -no-pch \
+	./configure $LTO $QPA -nomake tests -nomake examples -optimize-size -no-pch \
 		-submodules qtbase,qtdeclarative,qttools,qtmultimedia \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
