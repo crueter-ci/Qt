@@ -39,8 +39,8 @@ jobs:
       - name: Setup ccache
         uses: crueter/ccache-action@master
         with:
-          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          key: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}-
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
