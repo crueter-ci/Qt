@@ -96,7 +96,7 @@ configure() {
 
 	# Multimedia backends
 	case "$PLATFORM" in
-		mingw|windows) MM="-feature-wasapi" ;;
+		mingw|windows) MM="-feature-wasapi -feature-wmf" ;;
 		macos) MM="-feature-avfoundation -feature-videotoolbox" ;;
 		linux) MM="-feature-pulseaudio" ;;
 		*) MM="-feature-alsa" ;;
@@ -104,7 +104,7 @@ configure() {
 
 	# FFmpeg
 	case "$PLATFORM" in
-		mingw|windows|macos|linux) MM="$MM -feature-ffmpeg -feature-thread"
+		macos|linux) MM="$MM -feature-ffmpeg -feature-thread"
 	esac
 
 	if [ "$CCACHE" = true ]; then
