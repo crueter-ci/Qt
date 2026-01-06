@@ -128,13 +128,20 @@ configure() {
 	# also, gc-binaries can't be done on shared
 	[ "$SHARED" = true ] || LTO="$LTO -gc-binaries"
 
+	# Submodules
+	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia"
+	case "$PLATFORM" in
+		windows|mingw|macos) ;;
+		*) SUBMODULES="$SUBMODULES,qtwayland"
+	esac
+
 	# These are the recommended configuration options from Qt
 	# We skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# shellcheck disable=SC2086
 	./configure $LTO $QPA $MM -nomake tests -nomake examples -optimize-size -no-pch \
-		-submodules qtbase,qtdeclarative,qttools,qtmultimedia \
+		-submodules "$SUBMODULES" \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-xml -no-feature-dbus -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
