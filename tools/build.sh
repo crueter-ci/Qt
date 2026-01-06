@@ -94,6 +94,19 @@ configure() {
 
 	QPA="$QPA -default-qpa $dqpa"
 
+	# Multimedia backends
+	case "$PLATFORM" in
+		mingw|windows) MM="-feature-wasapi" ;;
+		macos) MM="-feature-avfoundation -feature-videotoolbox" ;;
+		linux) MM="-feature-pulseaudio" ;;
+		*) MM="-feature-alsa" ;;
+	esac
+
+	# FFmpeg
+	case "$PLATFORM" in
+		mingw|windows|macos|linux) MM="$MM -feature-ffmpeg -feature-thread"
+	esac
+
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
 		set -- "$@" -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}" -DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
@@ -116,7 +129,7 @@ configure() {
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# shellcheck disable=SC2086
-	./configure $LTO $QPA -nomake tests -nomake examples -optimize-size -no-pch \
+	./configure $LTO $QPA $MM -nomake tests -nomake examples -optimize-size -no-pch \
 		-submodules qtbase,qtdeclarative,qttools,qtmultimedia \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
