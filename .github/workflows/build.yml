@@ -37,10 +37,11 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: crueter/ccache-action@master
+        uses: crueter/ccache-action@marge
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          force-install: true
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
