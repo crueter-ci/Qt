@@ -74,6 +74,19 @@ configure() {
 		*) FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables" ;;
 	esac
 
+	# QPA selection
+	case "$PLATFORM" in
+		mingw|windows)
+			dqpa=windows
+			;;
+		macos)
+			dqpa=cocoa
+			;;
+		*)
+			dqpa=xcb
+			LTO="$LTO -xcb -qpa xcb;wayland -gtk"
+			;;
+	esac
 
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"

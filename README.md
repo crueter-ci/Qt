@@ -1,36 +1,20 @@
-# QtStatic
+# Qt CI
 
-Static builds of Qt 6
+Scripts and CI for debloated Qt, containing Qt Base and Declarative modules.
 
-## Licensing
+- [**Releases**](https://github.com/crueter-ci/Qt/releases)
+- No UNIX (FreeBSD, OpenBSD, illumos) builds are provided.
+- macOS builds are ARM only.
 
-These builds are distributed under the terms of Qt's license. The build script itself is GPLv3.
+## Building and Usage
 
-## TODO
+See the [spec](https://github.com/crueter-ci/spec). This is slightly different than the others, CPMUtil will have support added for it eventually.
 
-- cross comp
-- CPU opts; e.g. build for your specific CPU :)
+## Dependencies
 
-## deps
+All: CMake, Ninja, pkg-config, curl, zstd, unzip, working compiler
 
-That I know of at least.
+- Linux: X11 and MESA libraries
+- ccache is recommended for all platforms.
 
-All platforms require Ninja, CMake >=3.22, and Python.
-
-### Linux
-
-Basically just X11, glib, zstd, and pthread. Vulkan maybe? <https://doc.qt.io/qt-6/linux-requirements.html>
-
-Also check Arch Linux packages for:
-
-- [qt6-base](https://archlinux.org/packages/extra/x86_64/qt6-base/)
-- [qt6-declarative](https://archlinux.org/packages/extra/x86_64/qt6-declarative/)
-- [qt6-tools](https://archlinux.org/packages/extra/x86_64/qt6-tools/)
-
-### macOS
-
-nothing
-
-### Windows
-
-idk
+See [`deps`](./deps) for specific package installation commands.
