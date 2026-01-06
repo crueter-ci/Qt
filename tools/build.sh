@@ -107,6 +107,10 @@ configure() {
 		macos|linux) MM="$MM -feature-ffmpeg -feature-thread"
 	esac
 
+	if [ "$PLATFORM" = macos ]; then
+		set -- "$@" -DFFMPEG_DIR="$(brew --prefix ffmpeg)"
+	fi
+
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
 		set -- "$@" -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}" -DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
