@@ -82,9 +82,13 @@ configure() {
 		macos)
 			dqpa=cocoa
 			;;
+		linux)
+			dqpa=xcb
+			QPA="-xcb -qpa xcb;wayland -feature-wayland -gtk"
+			;;
 		*)
 			dqpa=xcb
-			QPA="-xcb -qpa xcb;wayland -gtk"
+			QPA="-xcb -qpa xcb -gtk"
 			;;
 	esac
 
