@@ -1,8 +1,8 @@
 #!/bin/sh
 
-set -e
-
 # shellcheck disable=SC1091
+
+set -e
 
 . tools/common.sh
 
@@ -21,6 +21,10 @@ fi
 show_stats() {
 	"$CCACHE_PATH" -s
 }
+
+# Deps
+. deps/ffmpeg.sh
+. deps/openssl.sh
 
 # cmake
 configure() {
@@ -98,17 +102,12 @@ configure() {
 	case "$PLATFORM" in
 		mingw|windows) MM="-feature-wasapi -feature-wmf" ;;
 		macos) MM="-feature-avfoundation -feature-videotoolbox" ;;
-		linux) MM="-feature-pulseaudio" ;;
-		*) MM="-feature-alsa" ;;
+		*) MM="-feature-pulseaudio" ;;
 	esac
 
 	# FFmpeg
-	case "$PLATFORM" in
-		macos|linux)
-			MM="$MM -feature-ffmpeg -feature-thread -ffmpeg-deploy -openssl-linked"
-			set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
-			;;
-	esac
+	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
+	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
 
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
@@ -121,11 +120,8 @@ configure() {
 		LTO="$LTO -static-runtime"
 	fi
 
-	# FUCK
-	if [ "$PLATFORM" = "macos" ]; then
-		FFMPEG_DIR=$(brew --prefix ffmpeg 2>/dev/null || true)
-		set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR"
-	fi
+	# deps
+	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
 
 	# UNIX builds shared because you do not want to bundle every Qt plugin under the sun
 	set -- "$@" -DBUILD_SHARED_LIBS="$SHARED"
