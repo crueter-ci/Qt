@@ -26,6 +26,7 @@ show_stats() {
 # Deps
 ! unix || . deps/libva.sh
 ! linux || . deps/libdrm.sh
+! msvc || . deps/vulkan.sh
 . deps/ffmpeg.sh
 . deps/openssl.sh
 
@@ -70,9 +71,9 @@ configure() {
 	# LTO
 	# For some reason it seems like MacOS and Windows get horrifically clobbered by LTO.
 	if unix; then
-		LTO="$LTO -no-ltcg" 
+		LTO="$LTO -ltcg" 
 	else
-		LTO="$LTO -ltcg"
+		LTO="$LTO -no-ltcg"
 	fi
 
 	# Omit frame pointer and unwind tables on non-Windows platforms
@@ -148,17 +149,19 @@ configure() {
 	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia"
 	! unix || SUBMODULES="$SUBMODULES,qtwayland"
 
+	# Vulkan is on for everything except macos
+	macos || VK="-feature-vulkan"
+
 	# These are the recommended configuration options from Qt
 	# We skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# shellcheck disable=SC2086
-	./configure $LTO $QPA $MM -nomake tests -nomake examples -optimize-size -no-pch \
+	./configure $LTO $QPA $MM $VK -nomake tests -nomake examples -optimize-size -no-pch \
 		-submodules "$SUBMODULES" \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-xml -no-feature-dbus -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
-		-feature-vulkan \
 		-no-feature-linguist -no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
