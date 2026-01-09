@@ -108,7 +108,7 @@ configure() {
 	# FFmpeg + OpenSSL
 	# NOTE: CMake's find_library is slightly less forgiving than the dynamic linker.
 	# seems like it expects lib${libname}.lib on Windows? Maybe?
-	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked -no-deploy-ffmpeg"
+	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
 	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
 	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
 
