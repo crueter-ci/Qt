@@ -105,9 +105,13 @@ configure() {
 		*) MM="-feature-pulseaudio" ;;
 	esac
 
-	# FFmpeg
-	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
+	# FFmpeg + OpenSSL
+	# NOTE: CMake's find_library is slightly less forgiving than the dynamic linker.
+	# seems like it expects lib${libname}.lib on Windows? Maybe?
+	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked -no-deploy-ffmpeg"
 	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
+	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
+
 
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
@@ -119,9 +123,6 @@ configure() {
 	if [ "$PLATFORM" = "windows" ] && [ "$ARCH" = arm64 ]; then
 		LTO="$LTO -static-runtime"
 	fi
-
-	# deps
-	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
 
 	# UNIX builds shared because you do not want to bundle every Qt plugin under the sun
 	set -- "$@" -DBUILD_SHARED_LIBS="$SHARED"
