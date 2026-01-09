@@ -5,3 +5,5 @@
 /out
 /ffmpeg*
 /openssl*
+/libdrm
+/libva

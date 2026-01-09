@@ -23,6 +23,8 @@ show_stats() {
 }
 
 # Deps
+! unix || . deps/libva.sh
+! linux || . deps/libdrm.sh
 . deps/ffmpeg.sh
 . deps/openssl.sh
 
@@ -31,7 +33,7 @@ configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
 	FLAGS="-g0"
-	if [ "$PLATFORM" = "windows" ]; then
+	if msvc; then
 		# /Gy - function-sectors
 		# /Gw - data-sections
 		# /EHs- /EHc- - EXCEPTIONS ARE FOR LOSERS
@@ -52,7 +54,7 @@ configure() {
 	esac
 
 	# average openbsd moment
-	if [ "$PLATFORM" = openbsd ]; then
+	if openbsd; then
 		set -- "$@" -DCMAKE_AR="$(which llvm-ar-19)" -DCMAKE_RANLIB="$(which llvm-ranlib-19)"
 	fi
 
@@ -73,27 +75,16 @@ configure() {
 
 	# Omit frame pointer and unwind tables on non-Windows platforms
 	# saves a bit of space
-	case "$PLATFORM" in
-		mingw|windows) ;;
-		*) FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables" ;;
-	esac
+	windows || FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables"
 
 	# QPA selection
 	case "$PLATFORM" in
-		mingw|windows)
-			dqpa=windows
-			;;
-		macos)
-			dqpa=cocoa
-			;;
-		linux)
-			dqpa=xcb
-			QPA="-xcb -qpa xcb;wayland -feature-wayland -gtk"
-			;;
-		*)
-			dqpa=xcb
-			QPA="-xcb -qpa xcb -gtk"
-			;;
+		mingw|windows) dqpa=windows ;;
+		macos) dqpa=cocoa ;;
+		linux) dqpa=xcb
+			QPA="-xcb -qpa xcb;wayland -feature-wayland -gtk" ;;
+		*    ) dqpa=xcb
+			QPA="-xcb -qpa xcb -gtk" ;;
 	esac
 
 	QPA="$QPA -default-qpa $dqpa"
@@ -106,14 +97,25 @@ configure() {
 	esac
 
 	# FFmpeg + OpenSSL
-	# NOTE: CMake's find_library is slightly less forgiving than the dynamic linker.
-	# seems like it expects lib${libname}.lib on Windows? Maybe?
 	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
 	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
 	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
 
-	ls "$FFMPEG_DIR"
-	ls "$OPENSSL_DIR"
+	# libva
+	if unix; then
+		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+		printf -- "-- * libva pkg-config: "
+		pkg-config --cflags --libs libva
+		printf -- "-- * libva-drm pkg-config: "
+		pkg-config --cflags --libs libva-drm
+	fi
+
+	# libdrm
+	if linux; then
+		export PKG_CONFIG_PATH="$LIBDRM_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
+		printf -- "-- * libdrm pkg-config: "
+		pkg-config --cflags --libs libdrm
+	fi
 
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
@@ -122,7 +124,7 @@ configure() {
 
 	# I have no idea what's going on with MSVC, you almost have to wonder if it has something to do
 	# with them firing every single one of their developers in 2023
-	if [ "$PLATFORM" = "windows" ] && [ "$ARCH" = arm64 ]; then
+	if msvc && [ "$ARCH" = arm64 ]; then
 		LTO="$LTO -static-runtime"
 	fi
 
