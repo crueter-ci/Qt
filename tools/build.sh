@@ -27,8 +27,11 @@ show_stats() {
 ! unix || . deps/libva.sh
 ! linux || . deps/libdrm.sh
 ! msvc || . deps/vulkan.sh
-. deps/ffmpeg.sh
-. deps/openssl.sh
+
+if ! windows; then
+	. deps/ffmpeg.sh
+	. deps/openssl.sh
+fi
 
 # cmake
 configure() {
@@ -100,17 +103,22 @@ configure() {
 	esac
 
 	# FFmpeg + OpenSSL
-	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
+	# Windows is actually better off without this since we can just use the system
+	# wmf + wasapi + schannel.
 
-	if windows; then
-		FFMPEG_DIR="$(cygpath -w "$FFMPEG_DIR")"
-		OPENSSL_DIR="$(cygpath -w "$OPENSSL_DIR")"
+	if ! windows; then
+		MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
+
+		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
+
+		echo "-- * FFmpeg dir: $FFMPEG_DIR"
+		echo "-- * OpenSSL dir: $OPENSSL_DIR"
 	fi
-
-	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
-
-	echo "-- * FFmpeg dir: $FFMPEG_DIR"
-	echo "-- * OpenSSL dir: $OPENSSL_DIR"
+	
+	# if windows; then
+	# 	FFMPEG_DIR="$(cygpath -w "$FFMPEG_DIR")"
+	# 	OPENSSL_DIR="$(cygpath -w "$OPENSSL_DIR")"
+	# fi
 
 	# libva
 	if unix; then
