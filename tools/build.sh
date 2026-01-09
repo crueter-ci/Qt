@@ -10,6 +10,7 @@ set -e
 
 : "${ARCH:=amd64}"
 : "${BUILD_DIR:=build}"
+mkdir -p "$BUILD_DIR"
 
 ## Build Functions ##
 
@@ -100,6 +101,12 @@ configure() {
 	MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
 	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
 	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
+
+	echo "-- * FFmpeg dir: $FFMPEG_DIR, contents:"
+	find "$FFMPEG_DIR" -type f
+
+	echo "-- * OpenSSL dir: $OPENSSL_DIR, contents:"
+	find "$OPENSSL_DIR" -type f
 
 	# libva
 	if unix; then
