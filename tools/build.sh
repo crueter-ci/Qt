@@ -112,6 +112,8 @@ configure() {
 	set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON
 	set -- "$@" -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
 
+	ls "$FFMPEG_DIR"
+	ls "$OPENSSL_DIR"
 
 	if [ "$CCACHE" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
