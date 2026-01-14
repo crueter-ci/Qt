@@ -3,6 +3,8 @@
 ## Common variables ##
 
 export VERSION=6.9.3
+VERSION_SHORT=$(echo "$VERSION" | cut -d'.' -f1-2)
+export VERSION_SHORT
 
 export PRETTY_NAME="Qt"
 export FILENAME="qt"
