@@ -110,7 +110,7 @@ configure() {
 	if ! windows; then
 		MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
 
-		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
+		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR" -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
 
 		echo "-- * FFmpeg dir: $FFMPEG_DIR"
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
