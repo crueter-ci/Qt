@@ -137,9 +137,9 @@ num_procs() {
 ## Packaging ##
 strip_libs() {
 	if macos; then
-		find "$OUT_DIR" -type f -name '*.dylib' -exec strip -u -r {} \;
+		find "$OUT_DIR" -type f -name '*.dylib*' -exec strip -u -r {} \;
 	elif unix; then
-		find "$OUT_DIR" -type f -name '*.so' -exec strip {} \;
+		find "$OUT_DIR" -type f -name '*.so*' -exec strip {} \;
 	elif mingw; then
 		find "$OUT_DIR" -type f -name '*.dll' -exec strip {} \;
 	fi
@@ -150,6 +150,9 @@ package() {
 
 	# strip shared libs
 	strip_libs
+
+	# remove superfluous fluentwinui3 stuff
+	rm -rf "$OUT_DIR"/qml/QtQuick/Controls/FluentWinUI3
 
     mkdir -p "$ROOTDIR/artifacts"
 

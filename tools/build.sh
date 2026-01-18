@@ -49,7 +49,7 @@ configure() {
 		[ "$ARCH" != amd64 ] || FLAGS="$FLAGS /DYNAMICBASE:NO"
 		set -- "$@" -DQT_BUILD_QDOC=OFF
 	else
-		LTO="-reduce-exports"
+		EXTRACONFIG="-reduce-exports"
 	fi
 
 	# PIC/PIE handling
@@ -71,16 +71,6 @@ configure() {
 		macos) LDFLAGS="-Wl,-dead_strip -Wl,-dead_strip" ;;
 		*) LDFLAGS="-Wl,--gc-sections" ;;
 	esac
-
-	# LTO
-	# For some reason it seems like MacOS and Windows get horrifically clobbered by LTO.
-	# TODO: maybe linux does too?
-	LTO="$LTO -no-ltcg"
-	# if unix; then
-	# 	LTO="$LTO -ltcg"
-	# else
-	# 	LTO="$LTO -no-ltcg"
-	# fi
 
 	# Omit frame pointer and unwind tables on non-Windows platforms
 	# saves a bit of space
@@ -118,11 +108,6 @@ configure() {
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
 	fi
 
-	# if windows; then
-	# 	FFMPEG_DIR="$(cygpath -w "$FFMPEG_DIR")"
-	# 	OPENSSL_DIR="$(cygpath -w "$OPENSSL_DIR")"
-	# fi
-
 	# libva
 	if unix; then
 		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
@@ -151,14 +136,14 @@ configure() {
 	# I have no idea what's going on with MSVC, you almost have to wonder if it has something to do
 	# with them firing every single one of their developers in 2023
 	if msvc && [ "$ARCH" = arm64 ]; then
-		LTO="$LTO -static-runtime"
+		EXTRACONFIG="$EXTRACONFIG -static-runtime"
 	fi
 
 	# UNIX builds shared because you do not want to bundle every Qt plugin under the sun
 	set -- "$@" -DBUILD_SHARED_LIBS="$SHARED"
 
 	# also, gc-binaries can't be done on shared
-	[ "$SHARED" = true ] || LTO="$LTO -gc-binaries"
+	[ "$SHARED" = true ] || EXTRACONFIG="$EXTRACONFIG -gc-binaries"
 
 	# Submodules
 	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia"
@@ -171,13 +156,14 @@ configure() {
 	# We skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
+	# Note that ltcg is absolutely radioactive and bloats static libs by like 5-10x. Please do not use it
 	# shellcheck disable=SC2086
-	./configure $LTO $QPA $MM $VK -nomake tests -nomake examples -optimize-size -no-pch \
+	./configure $EXTRACONFIG $QPA $MM $VK -nomake tests -nomake examples -optimize-size -no-pch -no-ltcg \
 		-submodules "$SUBMODULES" \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -- "$@" \
+		-no-feature-designer -no-feature-assistant -no-feature-pixeEXTRACONFIGol -feature-filesystemwatcher -- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
 }
