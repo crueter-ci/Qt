@@ -163,7 +163,7 @@ configure() {
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeEXTRACONFIGol -feature-filesystemwatcher -- "$@" \
+		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwsatcher -- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
 }
