@@ -135,8 +135,22 @@ num_procs() {
 }
 
 ## Packaging ##
+strip_libs() {
+	if macos; then
+		find "$OUT_DIR" -type f -name '*.dylib' -exec strip -u -r {} \;
+	elif unix; then
+		find "$OUT_DIR" -type f -name '*.so' -exec strip {} \;
+	elif mingw; then
+		find "$OUT_DIR" -type f -name '*.dll' -exec strip {} \;
+	fi
+}
+
 package() {
     echo "-- Packaging..."
+
+	# strip shared libs
+	strip_libs
+
     mkdir -p "$ROOTDIR/artifacts"
 
 	TARBALL=$FILENAME-$PLATFORM-$ARCH-$VERSION.tar

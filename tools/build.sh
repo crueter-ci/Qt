@@ -74,11 +74,13 @@ configure() {
 
 	# LTO
 	# For some reason it seems like MacOS and Windows get horrifically clobbered by LTO.
-	if unix; then
-		LTO="$LTO -ltcg"
-	else
-		LTO="$LTO -no-ltcg"
-	fi
+	# TODO: maybe linux does too?
+	LTO="$LTO -no-ltcg"
+	# if unix; then
+	# 	LTO="$LTO -ltcg"
+	# else
+	# 	LTO="$LTO -no-ltcg"
+	# fi
 
 	# Omit frame pointer and unwind tables on non-Windows platforms
 	# saves a bit of space
