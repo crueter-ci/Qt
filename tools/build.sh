@@ -148,12 +148,6 @@ configure() {
 		set -- "$@" -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}" -DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
 	fi
 
-	# I have no idea what's going on with MSVC, you almost have to wonder if it has something to do
-	# with them firing every single one of their developers in 2023
-	if msvc && [ "$ARCH" = arm64 ]; then
-		LTO="$LTO -static-runtime"
-	fi
-
 	# UNIX builds shared because you do not want to bundle every Qt plugin under the sun
 	set -- "$@" -DBUILD_SHARED_LIBS="$SHARED"
 
