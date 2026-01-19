@@ -175,7 +175,7 @@ configure() {
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
 		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher \
-		-qt-libmd4c -qt-webp -no-feature-clang \
+		-qt-libmd4c -qt-webp -no-feature-system-jpeg -no-feature-system-zlib -no-feature-clang \
 		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
@@ -186,7 +186,7 @@ configure() {
 
 build() {
     echo "-- Building $PRETTY_NAME..."
-    cmake --build . --parallel 8 || { show_stats; exit 1; }
+    cmake --build . --parallel || { show_stats; exit 1; }
 	show_stats
 }
 
@@ -212,7 +212,7 @@ copy_build_artifacts() {
 }
 
 ## Cleanup ##
-rm -rf "$BUILD_DIR" "$OUT_DIR"
+rm -rf "$BUILD_DIR" # "$OUT_DIR"
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
