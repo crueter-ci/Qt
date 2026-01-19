@@ -102,7 +102,7 @@ extract() {
 
 	# misc in-tree patches
 	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-	find "$ROOTDIR"/patches -type f -name "*.patches" | while read -r patch; do
+	find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
 		echo "-- Applying patchset $(basename -- "$patch")"
 		patch -p1 < "$patch"
 	done
