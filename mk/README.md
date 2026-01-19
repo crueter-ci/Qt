@@ -1,3 +1,3 @@
 # qtmake
 
-Scripts to make debloated Qt, OpenBSD/Solaris patches, etc.
+Scripts to make debloated Qt source, OpenBSD/Solaris patches, etc.

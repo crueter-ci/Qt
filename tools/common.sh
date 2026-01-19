@@ -31,7 +31,7 @@ must_install() {
 	done
 }
 
-must_install curl zstd cmake xz ninja unzip
+must_install curl zstd cmake xz ninja unzip patch
 
 if [ "$PLATFORM" = "openbsd" ]; then
 	must_install llvm-ar-19 llvm-ranlib-19
@@ -100,9 +100,17 @@ extract() {
 		mk/solaris.sh apply
 	fi
 
+	# misc in-tree patches
+	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
+	find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
+		echo "-- Applying patchset $(basename -- "$patch")"
+		patch -p1 < "$patch"
+	done
+
 	# lmao
 	# -i isn't POSIX compliant but MinGW environments are strictly GNU so it's fine.
 	if mingw && arm; then
+		cd "$ROOTDIR/$BUILD_DIR"
 		sed -i '10i #include <arm_acle.h>' "$DIRECTORY"/qtbase/src/corelib/thread/qyieldcpu.h
 	fi
 }

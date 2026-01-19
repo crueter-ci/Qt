@@ -128,7 +128,7 @@ configure() {
 		pkg-config --cflags --libs libdrm
 	fi
 
-	if [ "$CCACHE" = true ]; then
+	if [ "${CCACHE:-true}" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
 		set -- "$@" -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}" -DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
 	fi
@@ -152,20 +152,39 @@ configure() {
 	# Vulkan is on for everything except macos
 	macos || VK="-feature-vulkan"
 
+	# deploy stuff
+	DEPLOY="-no-feature-androiddeployqt -no-feature-windeployqt -no-feature-macdeployqt"
+
+	# DBus disabled on everything not named linux
+	if linux; then
+		DBUS="-feature-dbus"
+	else
+		DBUS="-no-feature-dbus"
+	fi
+
+	if mingw; then
+		PKG="-no-feature-system-jpeg -no-feature-system-zlib -no-feature-system-pcre2 -no-feature-system-freetype -qt-libmd4c -qt-webp"
+	fi
+
 	# These are the recommended configuration options from Qt
 	# We skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# Note that ltcg is absolutely radioactive and bloats static libs by like 5-10x. Please do not use it
+
 	# shellcheck disable=SC2086
-	./configure $EXTRACONFIG $QPA $MM $VK -nomake tests -nomake examples -optimize-size -no-pch -no-ltcg \
-		-submodules "$SUBMODULES" \
+	./configure $EXTRACONFIG $QPA $MM $VK $DEPLOY $DBUS $PKG -nomake tests -nomake examples \
+		-submodules "$SUBMODULES" -optimize-size -no-pch -no-ltcg \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
-		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -- "$@" \
+		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
+		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher \
+		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
+
+	grep -i 'library_release:' CMakeCache.txt
+	grep -i 'jpeg' CMakeCache.txt
 }
 
 build() {
@@ -176,21 +195,35 @@ build() {
 
 ## Packaging ##
 copy_build_artifacts() {
+	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
     echo "-- Copying artifacts..."
 
 	cmake --install . --prefix "$OUT_DIR"
 
     rm -rf "$OUT_DIR"/doc
+
+	# clean out unnecessary executables(?)
+	rm -f "$OUT_DIR"/bin/l* "$OUT_DIR"/bin/*deployqt* \
+		"$OUT_DIR"/bin/*doc* "$OUT_DIR"/bin/*test* "$OUT_DIR"/bin/qmleasing*
+
+	# TODO(crueter): Some of the stuff like qtdiag, qmljsrootgen, qml.exe seem unnecessary.
+	# Run some tests to confirm.
+
+	if ! unix; then
+		rm -f "$OUT_DIR"/bin/*dbus*
+	fi
 }
 
 ## Cleanup ##
-rm -rf "$BUILD_DIR" "$OUT_DIR"
+rm -rf "$BUILD_DIR" # "$OUT_DIR"
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
 download
-cd "$BUILD_DIR"
+cd "$ROOTDIR/$BUILD_DIR"
 extract
+
+rm -f CMakeCache.txt
 
 ## Configure ##
 cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
