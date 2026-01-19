@@ -3,8 +3,8 @@
 # shellcheck disable=SC1091
 . tools/common.sh
 
-# ./mk/openbsd.sh apply = apply patches on qt-$VERSION from current dir
-# ./mk/openbsd.sh make  = make a tarball of the patches from oi-userland
+# ./mk/solaris.sh apply = apply patches on qt-$VERSION from current dir
+# ./mk/solaris.sh make  = make a tarball of the patches from oi-userland
 
 ROOTDIR="$PWD"
 PATCHDIR="$ROOTDIR/patches"
@@ -16,7 +16,7 @@ if [ "$1" = "apply" ]; then
 	_patchdir="$ROOTDIR/patches"
 	if [ ! -d "$_patchdir" ]; then
 		if [ ! -f "$out" ]; then
-			echo "-- Patch directory and/or archive not found. Run mk/openbsd.sh make first"
+			echo "-- Patch directory and/or archive not found. Run mk/solaris.sh make first"
 			exit 1
 		fi
 

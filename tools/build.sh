@@ -157,6 +157,7 @@ configure() {
 	# Also disable zstd, icu, and renderdoc; these are useless
 	# and cause more issues than they solve.
 	# Note that ltcg is absolutely radioactive and bloats static libs by like 5-10x. Please do not use it
+
 	# shellcheck disable=SC2086
 	./configure $EXTRACONFIG $QPA $MM $VK -nomake tests -nomake examples -optimize-size -no-pch -no-ltcg \
 		-submodules "$SUBMODULES" \
@@ -166,6 +167,8 @@ configure() {
 		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
+
+	grep -i 'library_release:' CMakeCache.txt
 }
 
 build() {
@@ -189,8 +192,10 @@ mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
 download
-cd "$BUILD_DIR"
+cd "$ROOTDIR/$BUILD_DIR"
 extract
+
+rm -f CMakeCache.txt
 
 ## Configure ##
 cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"

@@ -73,7 +73,8 @@ jobs:
             git make unzip pkgconf diffutils
           pacboy: >-
             toolchain:p vulkan-devel:p pkg-config:p
-            cmake:p ninja:p ccache:p
+            cmake:p ninja:p ccache:p libjpeg-turbo:p
+            zlib:p libpng:p
 
       - name: Build (MSYS)
         if: matrix.platform == 'mingw'
