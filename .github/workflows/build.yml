@@ -70,7 +70,7 @@ jobs:
           msystem: ${{ matrix.os.msystem }}
           update: true
           install: >-
-            git make unzip pkgconf diffutils
+            git make unzip pkgconf diffutils patch
           pacboy: >-
             toolchain:p vulkan-devel:p pkg-config:p
             cmake:p ninja:p ccache:p libjpeg-turbo:p
