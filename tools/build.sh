@@ -212,22 +212,22 @@ copy_build_artifacts() {
 }
 
 ## Cleanup ##
-# rm -rf "$BUILD_DIR" "$OUT_DIR"
-# mkdir -p "$BUILD_DIR" "$OUT_DIR"
+rm -rf "$BUILD_DIR" "$OUT_DIR"
+mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
-# ## Download + Extract ##
-# download
-# cd "$ROOTDIR/$BUILD_DIR"
-# extract
+## Download + Extract ##
+download
+cd "$ROOTDIR/$BUILD_DIR"
+extract
 
-# rm -f CMakeCache.txt
+rm -f CMakeCache.txt
 
-# ## Configure ##
-# cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-# configure
+## Configure ##
+cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
+configure
 
-# ## Build ##
-# build
+## Build ##
+build
 copy_build_artifacts
 
 ## Package ##
