@@ -128,7 +128,7 @@ configure() {
 		pkg-config --cflags --libs libdrm
 	fi
 
-	if [ "$CCACHE" = true ]; then
+	if [ "${CCACHE:-true}" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
 		set -- "$@" -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}" -DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
 	fi
@@ -153,7 +153,7 @@ configure() {
 	macos || VK="-feature-vulkan"
 
 	# deploy stuff
-	DEPLOY="-no-feature-androiddeployqt -no-feature-windeployqt -no-feature-macdeployqt -no-feature-androidtestrunner"
+	DEPLOY="-no-feature-androiddeployqt -no-feature-windeployqt -no-feature-macdeployqt"
 
 	# DBus disabled on everything not named linux
 	if linux; then
@@ -174,24 +174,28 @@ configure() {
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -- "$@" \
+		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher \
+		-qt-libmd4c -qt-webp -no-feature-clang \
+		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
 
 	grep -i 'library_release:' CMakeCache.txt
+	grep -i 'webp' CMakeCache.txt
 }
 
 build() {
     echo "-- Building $PRETTY_NAME..."
-    cmake --build . --parallel || { show_stats; exit 1; }
+    cmake --build . --parallel 8 || { show_stats; exit 1; }
 	show_stats
 }
 
 ## Packaging ##
 copy_build_artifacts() {
+	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
     echo "-- Copying artifacts..."
 
-	# cmake --install . --prefix "$OUT_DIR"
+	cmake --install . --prefix "$OUT_DIR"
 
     rm -rf "$OUT_DIR"/doc
 
@@ -208,22 +212,22 @@ copy_build_artifacts() {
 }
 
 ## Cleanup ##
-rm -rf "$BUILD_DIR" "$OUT_DIR"
-mkdir -p "$BUILD_DIR" "$OUT_DIR"
+# rm -rf "$BUILD_DIR" "$OUT_DIR"
+# mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
-## Download + Extract ##
-download
-cd "$ROOTDIR/$BUILD_DIR"
-extract
+# ## Download + Extract ##
+# download
+# cd "$ROOTDIR/$BUILD_DIR"
+# extract
 
-rm -f CMakeCache.txt
+# rm -f CMakeCache.txt
 
-## Configure ##
-cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-configure
+# ## Configure ##
+# cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
+# configure
 
-## Build ##
-build
+# ## Build ##
+# build
 copy_build_artifacts
 
 ## Package ##
