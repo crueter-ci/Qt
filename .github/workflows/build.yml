@@ -75,7 +75,7 @@ jobs:
             toolchain:p vulkan-devel:p pkg-config:p
             cmake:p ninja:p ccache:p libjpeg-turbo:p
             zlib:p libpng:p double-conversion:p
-            freetype:p tiff:p
+            freetype:p libtiff:p
 
       - name: Build (MSYS)
         if: matrix.platform == 'mingw'
