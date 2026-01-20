@@ -202,9 +202,8 @@ copy_build_artifacts() {
 
     rm -rf "$OUT_DIR"/doc
 
-	# clean out unnecessary executables(?)
-	rm -f "$OUT_DIR"/bin/l* "$OUT_DIR"/bin/*deployqt* \
-		"$OUT_DIR"/bin/*doc* "$OUT_DIR"/bin/*test* "$OUT_DIR"/bin/qmleasing*
+	# TODO(crueter): See if some unnecessary executables can be cleaned out. They take up >half of the
+	# space on MinGW and Windows.
 
 	# TODO(crueter): Some of the stuff like qtdiag, qmljsrootgen, qml.exe seem unnecessary.
 	# Run some tests to confirm.
