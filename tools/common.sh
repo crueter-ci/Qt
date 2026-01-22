@@ -157,7 +157,7 @@ package() {
     echo "-- Packaging..."
 
 	# strip shared libs
-	strip_libs
+	# strip_libs
 
 	# remove superfluous fluentwinui3 stuff
 	rm -rf "$OUT_DIR"/qml/QtQuick/Controls/FluentWinUI3
