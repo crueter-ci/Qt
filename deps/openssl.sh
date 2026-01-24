@@ -16,6 +16,10 @@ if [ ! -d "$_dir" ]; then
 	$TAR xf "$_artifact" -C "$_dir"
 	rm -f "$_dir"/CMakeLists.txt
 	find "$_dir" \( -name "*.so*" -o -name "*.dll*" -o -name "*.dylib*" \) -exec rm {} \;
+
+	# awesome pkg-config stuff
+	mkdir -p "$_dir"/usr
+	ln -s "$_dir"/lib "$_dir"/usr/lib
 fi
 
 export OPENSSL_DIR="$_dir"
