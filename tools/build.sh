@@ -166,6 +166,19 @@ configure() {
 		PKG="-no-feature-system-jpeg -no-feature-system-zlib -no-feature-system-pcre2 -no-feature-system-freetype -qt-libmd4c -qt-webp"
 	fi
 
+	# package target (arch linux)
+	if [ "$PACKAGE" = true ]; then
+	set -- "$@" -DCMAKE_INSTALL_PREFIX=/usr \
+		-DINSTALL_BINDIR=lib/qt6/bin \
+		-DINSTALL_PUBLICBINDIR=usr/bin \
+		-DINSTALL_LIBEXECDIR=lib/qt6 \
+		-DINSTALL_DOCDIR=share/doc/qt6 \
+		-DINSTALL_ARCHDATADIR=lib/qt6 \
+		-DINSTALL_DATADIR=share/qt6 \
+		-DINSTALL_INCLUDEDIR=include/qt6 \
+		-DINSTALL_MKSPECSDIR=lib/qt6/mkspecs
+	fi
+
 	# These are the recommended configuration options from Qt
 	# We skip snca like quick3d, activeqt, etc.
 	# Also disable zstd, icu, and renderdoc; these are useless
@@ -173,13 +186,14 @@ configure() {
 	# Note that ltcg is absolutely radioactive and bloats static libs by like 5-10x. Please do not use it
 
 	# TODO: organize ts
+	# TODO: -no-feature-glib
 	# shellcheck disable=SC2086
 	./configure $EXTRACONFIG $QPA $MM $VK $DEPLOY $DBUS $PKG -nomake tests -nomake examples \
 		-submodules "$SUBMODULES" -optimize-size -no-pch -no-ltcg \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -no-feature-glib \
+		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher \
 		-no-feature-quickcontrols2-fluentwinui3 -no-feature-testlib -no-feature-qml-preview -no-feature-qml-profiler \
 		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \

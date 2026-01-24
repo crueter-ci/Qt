@@ -193,6 +193,48 @@ jobs:
   linux:
     name: "Linux (${{ matrix.arch }})"
     runs-on: ${{ matrix.runs-on }}
+    container: ghcr.io/pkgforge-dev/archlinux:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            arch: amd64
+
+          - runs-on: ubuntu-24.04-arm
+            arch: aarch64
+
+    env:
+      ARCH: ${{ matrix.arch }}
+      PLATFORM: linux
+      PACKAGE: true
+      PKGNAME: archlinux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: archlinux-${{ env.ARCH }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          max-size: 2G
+
+      - name: Deps
+        run: ./deps/arch.sh
+
+      - name: Build
+        run: ./tools/build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: archlinux-${{ matrix.arch }}
+          path: artifacts/*
+
+  linux:
+    name: "Linux (${{ matrix.arch }})"
+    runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
       matrix:

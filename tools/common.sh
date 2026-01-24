@@ -164,7 +164,9 @@ package() {
 
     mkdir -p "$ROOTDIR/artifacts"
 
-	TARBALL=$FILENAME-$PLATFORM-$ARCH-$VERSION.tar
+	: "${PKGNAME:=$PLATFORM}"
+
+	TARBALL="$FILENAME-$PKGNAME-$ARCH-$VERSION.tar"
 
     cd "$OUT_DIR"
     $TAR cf "$ROOTDIR/artifacts/$TARBALL" ./*
