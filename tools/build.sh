@@ -108,7 +108,7 @@ configure() {
 		export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR" \
-			-DCMAKE_FIND_LIBRARY_SUFFIXES=".a" -DCMAKE_PREFIX_PATH="$OPENSSL_DIR" -DOpenSSL_ROOT="$OPENSSL_DIR" -DOPENSSL_USE_STATIC_LIBS=ON
+			-DCMAKE_FIND_LIBRARY_SUFFIXES=".a" -DCMAKE_PREFIX_PATH="$OPENSSL_DIR" -DOpenSSL_ROOT="$OPENSSL_DIR" # -DOPENSSL_USE_STATIC_LIBS=ON
 
 		echo "-- * FFmpeg dir: $FFMPEG_DIR"
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
@@ -207,7 +207,6 @@ configure() {
 
 	grep -i 'libssl' CMakeCache.txt || true
 	grep -i 'libcrypto' CMakeCache.txt || true
-	grep -i '-lssl' CMakeCache.txt || true
 }
 
 build() {

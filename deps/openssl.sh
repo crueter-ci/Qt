@@ -20,6 +20,12 @@ if [ ! -d "$_dir" ]; then
 	# awesome pkg-config stuff
 	mkdir -p "$_dir"/usr
 	ln -s "$_dir"/lib "$_dir"/usr/lib
+
+	find "$_dir" -name "*.pc" | while read -r pc; do
+		echo "-- * Patching pc file $pc"
+		sed "s|^prefix=\/.*$|prefix=$_dir|g" "$pc" > "$pc".tmp
+		mv "$pc".tmp "$pc"
+	done
 fi
 
 export OPENSSL_DIR="$_dir"
