@@ -220,7 +220,7 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
         with:
           key: archlinux-${{ env.ARCH }}
-          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          restore-keys: archlinux-${{ env.ARCH }}
           max-size: 2G
 
       - name: Build

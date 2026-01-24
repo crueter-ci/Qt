@@ -5,4 +5,5 @@ pacman -Syu --needed --noconfirm \
 	vulkan-headers vulkan-icd-loader mesa libglvnd glu \
 	pkgconf libxrandr libxkbcommon-x11 zstd xcb-util-cursor \
 	gtk3 dbus alsa-lib libpulse fontconfig libpng libjpeg-turbo \
+	libdrm libva meson \
 	zlib xcb-util tar xz ccache
