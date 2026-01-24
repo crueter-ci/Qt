@@ -190,8 +190,8 @@ jobs:
   #         name: ${{ matrix.platform }}-${{ matrix.arch }}
   #         path: artifacts/*
 
-  linux:
-    name: "Linux (${{ matrix.arch }})"
+  arch:
+    name: "Arch Linux (${{ matrix.arch }})"
     runs-on: ${{ matrix.runs-on }}
     container: ghcr.io/pkgforge-dev/archlinux:latest
     strategy:
