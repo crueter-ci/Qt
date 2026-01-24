@@ -172,13 +172,14 @@ configure() {
 	# and cause more issues than they solve.
 	# Note that ltcg is absolutely radioactive and bloats static libs by like 5-10x. Please do not use it
 
+	# TODO: organize ts
 	# shellcheck disable=SC2086
 	./configure $EXTRACONFIG $QPA $MM $VK $DEPLOY $DBUS $PKG -nomake tests -nomake examples \
 		-submodules "$SUBMODULES" -optimize-size -no-pch -no-ltcg \
 		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher \
+		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -no-feature-glib \
 		-no-feature-quickcontrols2-fluentwinui3 -no-feature-testlib -no-feature-qml-preview -no-feature-qml-profiler \
 		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
