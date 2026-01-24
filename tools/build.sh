@@ -202,7 +202,7 @@ configure() {
 		-no-feature-quickcontrols2-fluentwinui3 -no-feature-testlib -no-feature-qml-preview -no-feature-qml-profiler \
 		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
-		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" --debug-find-pkg=OpenSSL
+		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
 
 	grep -i 'libssl' CMakeCache.txt
 }
