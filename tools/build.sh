@@ -24,8 +24,11 @@ show_stats() {
 }
 
 # Deps
-! unix || . deps/libva.sh
-! linux || . deps/libdrm.sh
+if [ "$PACKAGE" != "true" ]; then
+	! unix || . deps/libva.sh
+	! linux || . deps/libdrm.sh
+fi
+
 ! msvc || . deps/vulkan.sh
 
 if ! windows; then
