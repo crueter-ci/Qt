@@ -105,7 +105,7 @@ configure() {
 	if ! windows; then
 		MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
 
-		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR" -DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
+		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR" -DCMAKE_FIND_LIBRARY_SUFFIXES=".a" -DCMAKE_PREFIX_PATH="$OPENSSL_DIR"
 
 		echo "-- * FFmpeg dir: $FFMPEG_DIR"
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
@@ -200,7 +200,7 @@ configure() {
 		-no-feature-quickcontrols2-fluentwinui3 -no-feature-testlib -no-feature-qml-preview -no-feature-qml-profiler \
 		-- "$@" \
 		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
-		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
+		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" --debug-find-pkg=OpenSSL
 
 	grep -i 'library_release:' CMakeCache.txt
 	grep -i 'jpeg' CMakeCache.txt

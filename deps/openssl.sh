@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 _version=3.6.0-1cb0d36b39
-_repo=OpenSSL
+_repo=OpenSSL-Qt
 _name=openssl
 _dir="$ROOTDIR/$_name-$PLATFORM-$ARCH-$_version"
 
@@ -15,6 +15,7 @@ if [ ! -d "$_dir" ]; then
 	mkdir -p "$_dir"
 	$TAR xf "$_artifact" -C "$_dir"
 	rm -f "$_dir"/CMakeLists.txt
+	find "$_dir" \( -name "*.so*" -o -name "*.dll*" -o -name "*.dylib*" \) -exec rm {} \;
 fi
 
 export OPENSSL_DIR="$_dir"
