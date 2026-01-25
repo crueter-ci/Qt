@@ -46,7 +46,7 @@ jobs:
         with:
           key: ${{ matrix.platform }}-${{ matrix.os.arch }}
           restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          install: yes
+          install: binary
           variant: sccache
 
       - name: Setup MSVC
@@ -124,7 +124,7 @@ jobs:
           restore-keys: archlinux-${{ env.ARCH }}
           max-size: 2G
           update-package-index: true
-          install: yes
+          install: binary
           variant: sccache
 
       - name: Deps
@@ -165,7 +165,7 @@ jobs:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           max-size: 2G
-          install: yes
+          install: binary
           variant: sccache
 
       - name: Deps
@@ -200,7 +200,7 @@ jobs:
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          install: yes
+          install: binary
           variant: sccache
 
       - name: Get Dependencies
