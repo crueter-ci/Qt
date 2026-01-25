@@ -219,6 +219,7 @@ jobs:
           key: archlinux-${{ env.ARCH }}
           restore-keys: archlinux-${{ env.ARCH }}
           max-size: 2G
+          update-package-index: true
 
       - name: Deps
         run: ./deps/arch.sh
