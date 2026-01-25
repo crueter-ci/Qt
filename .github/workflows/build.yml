@@ -213,15 +213,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deps
-        run: ./deps/arch.sh
-
       - name: Setup ccache
         uses: crueter/ccache-action@master
         with:
           key: archlinux-${{ env.ARCH }}
           restore-keys: archlinux-${{ env.ARCH }}
           max-size: 2G
+
+      - name: Deps
+        run: ./deps/arch.sh
 
       - name: Build
         run: ./tools/build.sh
