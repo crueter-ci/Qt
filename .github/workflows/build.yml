@@ -46,7 +46,7 @@ jobs:
         with:
           key: ${{ matrix.platform }}-${{ matrix.os.arch }}
           restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          install: detect
+          install: no
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -221,7 +221,7 @@ jobs:
           restore-keys: archlinux-${{ env.ARCH }}
           max-size: 2G
           update-package-index: true
-          install: detect
+          install: no
 
       - name: Deps
         run: ./deps/arch.sh
@@ -261,7 +261,7 @@ jobs:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           max-size: 2G
-          install: detect
+          install: no
 
       - name: Deps
         run: ./deps/linux.sh
@@ -295,7 +295,7 @@ jobs:
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          install: detect
+          install: no
 
       - name: Get Dependencies
         run: |
