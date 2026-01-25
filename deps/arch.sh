@@ -7,4 +7,4 @@ pacman -Syu --needed --noconfirm \
 	gtk3 dbus alsa-lib libpulse fontconfig libpng libjpeg-turbo \
 	libdrm libva xcb-util-cursor \
 	libxcb xcb-util xcb-util-image xcb-util-keysyms xcb-util-renderutil xcb-util-wm \
-	zlib tar xz
+	zlib tar xz ccache
