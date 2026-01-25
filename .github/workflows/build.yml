@@ -261,6 +261,7 @@ jobs:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           max-size: 2G
+          install: binary
 
       - name: Deps
         run: ./deps/linux.sh
