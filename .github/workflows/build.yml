@@ -42,10 +42,11 @@ jobs:
           choco install zstandard
 
       - name: Setup ccache
-        uses: crueter/ccache-action@marge
+        uses: crueter/ccache-action@master
         with:
           key: ${{ matrix.platform }}-${{ matrix.os.arch }}
           restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
+          install: binary
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -73,7 +74,7 @@ jobs:
             git make unzip pkgconf diffutils patch
           pacboy: >-
             toolchain:p vulkan-devel:p pkg-config:p
-            cmake:p ninja:p ccache:p libjpeg-turbo:p
+            cmake:p ninja:p libjpeg-turbo:p
             zlib:p libpng:p double-conversion:p
             freetype:p libtiff:p
 
@@ -91,104 +92,6 @@ jobs:
         with:
           name: ${{ matrix.platform }}-${{ matrix.os.arch }}
           path: artifacts/*
-
-  # unix:
-  #   name: "${{ matrix.platform }} (${{ matrix.arch }})"
-  #   runs-on: ${{ matrix.runs-on }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       include:
-  #         - platform: solaris
-  #           runs-on: ubuntu-latest
-  #           arch: amd64
-  #           vm-arch: x86_64
-
-  #         - platform: freebsd
-  #           runs-on: ubuntu-latest
-  #           arch: amd64
-  #           vm-arch: x86_64
-
-  #         - platform: freebsd
-  #           runs-on: ubuntu-24.04-arm
-  #           arch: aarch64
-  #           vm-arch: aarch64
-
-  #         - platform: openbsd
-  #           runs-on: ubuntu-latest
-  #           arch: amd64
-  #           vm-arch: x86_64
-
-  #         - platform: openbsd
-  #           runs-on: ubuntu-24.04-arm
-  #           arch: aarch64
-  #           vm-arch: aarch64
-
-  #   env:
-  #     PLATFORM: ${{ matrix.platform }}
-  #     ARCH: ${{ matrix.arch }}
-
-  #   steps:
-  #     - uses: actions/checkout@v4
-
-  #     - name: Setup ccache
-  #       uses: hendrikmuhs/ccache-action@v1
-  #       with:
-  #         key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-  #         restore-keys: ${{ env.PLATFORM }}-
-
-  #     - name: Build (Solaris)
-  #       if: matrix.platform == 'solaris'
-  #       uses: vmactions/openindiana-vm@v1
-  #       with:
-  #         arch: ${{ matrix.vm-arch }}
-  #         release: "202510"
-  #         usesh: true
-  #         envs: 'PLATFORM ARCH GITHUB_WORKSPACE CCACHE'
-
-  #         run: |
-  #           # wtf
-  #           ulimit -v unlimited
-  #           swap -s
-  #           chmod a+x ./deps/solaris.sh
-  #           chmod a+x ./tools/build.sh
-  #           ./deps/solaris.sh
-  #           ./tools/build.sh
-
-  #     - name: Build (FreeBSD)
-  #       if: matrix.platform == 'freebsd'
-  #       uses: vmactions/freebsd-vm@v1
-  #       with:
-  #         arch: ${{ matrix.vm-arch }}
-  #         usesh: true
-  #         envs: 'PLATFORM ARCH GITHUB_WORKSPACE CCACHE'
-
-  #         run: |
-  #           chmod a+x ./deps/freebsd.sh
-  #           chmod a+x ./tools/build.sh
-  #           ./deps/freebsd.sh
-  #           bash -e ./tools/build.sh
-
-  #     - name: Build (OpenBSD)
-  #       if: matrix.platform == 'openbsd'
-  #       uses: vmactions/openbsd-vm@v1
-  #       with:
-  #         arch: ${{ matrix.vm-arch }}
-  #         usesh: true
-  #         envs: 'PLATFORM ARCH GITHUB_WORKSPACE CCACHE'
-
-  #         run: |
-  #           chmod a+x ./deps/openbsd.sh
-  #           chmod a+x ./tools/build.sh
-  #           ./deps/openbsd.sh
-  #           # OpenBSD compiler situation is sad
-  #           bash -e ./tools/build.sh
-
-  #     - name: Upload Artifacts
-  #       uses: actions/upload-artifact@v4
-  #       with:
-  #         name: ${{ matrix.platform }}-${{ matrix.arch }}
-  #         path: artifacts/*
 
   arch:
     name: "Arch Linux (${{ matrix.arch }})"
@@ -213,15 +116,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deps
-        run: ./deps/arch.sh
-
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
+        uses: crueter/ccache-action@master
         with:
           key: archlinux-${{ env.ARCH }}
           restore-keys: archlinux-${{ env.ARCH }}
           max-size: 2G
+          update-package-index: true
+          install: binary
+
+      - name: Deps
+        run: ./deps/arch.sh
 
       - name: Build
         run: ./tools/build.sh
@@ -253,11 +158,12 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           max-size: 2G
+          install: binary
 
       - name: Deps
         run: ./deps/linux.sh
@@ -287,10 +193,11 @@ jobs:
           submodules: recursive
 
       - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
+        uses: crueter/ccache-action@master
         with:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
+          install: binary
 
       - name: Get Dependencies
         run: |

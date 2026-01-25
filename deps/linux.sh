@@ -13,4 +13,4 @@ sudo apt-get install -y --no-install-recommends \
 	libxcb-image0-dev libxcb-keysyms1-dev libxcb-randr0-dev \
 	libxcb-render-util0-dev libxcb-shape0-dev libxcb-shm0-dev \
 	libxcb-sync-dev libxcb-util-dev libxcb-xfixes0-dev libxcb-xkb-dev \
-	tar xz-utils ccache
+	tar xz-utils
