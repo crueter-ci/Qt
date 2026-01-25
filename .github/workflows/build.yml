@@ -47,7 +47,6 @@ jobs:
           key: ${{ matrix.platform }}-${{ matrix.os.arch }}
           restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
           install: binary
-          variant: sccache
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -125,7 +124,6 @@ jobs:
           max-size: 2G
           update-package-index: true
           install: binary
-          variant: sccache
 
       - name: Deps
         run: ./deps/arch.sh
@@ -166,7 +164,6 @@ jobs:
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           max-size: 2G
           install: binary
-          variant: sccache
 
       - name: Deps
         run: ./deps/linux.sh
@@ -201,7 +198,6 @@ jobs:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           install: binary
-          variant: sccache
 
       - name: Get Dependencies
         run: |
