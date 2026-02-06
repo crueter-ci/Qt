@@ -53,6 +53,8 @@ configure() {
 		set -- "$@" -DQT_BUILD_QDOC=OFF
 	else
 		EXTRACONFIG="-reduce-exports"
+		# Optimize for size.
+		FLAGS="$FLAGS -Os"
 	fi
 
 	# PIC/PIE handling
