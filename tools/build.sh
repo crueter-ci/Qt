@@ -154,7 +154,7 @@ configure() {
 	[ "$SHARED" = true ] || EXTRACONFIG="$EXTRACONFIG -gc-binaries"
 
 	# Submodules
-	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia"
+	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia,qtcharts"
 	! unix || SUBMODULES="$SUBMODULES,qtwayland"
 
 	# Vulkan is on for everything except macos
