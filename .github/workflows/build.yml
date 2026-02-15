@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - runs-on: windows-latest
+          - runs-on: windows-2025-vs2026
             arch: amd64
             msvc_arch: amd64
             msystem: mingw64
@@ -62,7 +62,7 @@ jobs:
         shell: cmd
         run: |
           # WHAT THE FUCK
-          mklink /D "C:\Program Files\Microsoft Visual Studio\2022\Community" "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+          mklink /D "C:\Program Files\Microsoft Visual Studio\18\Community" "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
