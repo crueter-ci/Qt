@@ -176,15 +176,15 @@ configure() {
 
 	# package target (arch linux)
 	if [ "$PACKAGE" = true ]; then
-	set -- "$@" -DCMAKE_INSTALL_PREFIX=/usr \
-		-DINSTALL_BINDIR=lib/qt6/bin \
-		-DINSTALL_PUBLICBINDIR=usr/bin \
-		-DINSTALL_LIBEXECDIR=lib/qt6 \
-		-DINSTALL_DOCDIR=share/doc/qt6 \
-		-DINSTALL_ARCHDATADIR=lib/qt6 \
-		-DINSTALL_DATADIR=share/qt6 \
-		-DINSTALL_INCLUDEDIR=include/qt6 \
-		-DINSTALL_MKSPECSDIR=lib/qt6/mkspecs
+		set -- "$@" -DCMAKE_INSTALL_PREFIX=/usr \
+			-DINSTALL_BINDIR=lib/qt6/bin \
+			-DINSTALL_PUBLICBINDIR=usr/bin \
+			-DINSTALL_LIBEXECDIR=lib/qt6 \
+			-DINSTALL_DOCDIR=share/doc/qt6 \
+			-DINSTALL_ARCHDATADIR=lib/qt6 \
+			-DINSTALL_DATADIR=share/qt6 \
+			-DINSTALL_INCLUDEDIR=include/qt6 \
+			-DINSTALL_MKSPECSDIR=lib/qt6/mkspecs
 	fi
 
 	# These are the recommended configuration options from Qt

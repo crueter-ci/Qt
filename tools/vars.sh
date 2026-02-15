@@ -2,7 +2,28 @@
 
 ## Common variables ##
 
-export VERSION=6.10.2
+: "${VERSION:=6.10.2}"
+
+win7_owner=crueter
+win7_repo="qt6windows7"
+
+case "$VERSION" in
+	# no qt6windows7 builds yet.
+	6.10.2|6.7.3) ;;
+	# Qt6Windows7 stuff
+	6.9.3)
+		win7_commit="78074b12a94b56bb2b929f243fb9351b3f9e2439"
+		export QT6WINDOWS7=1
+		;;
+	*)
+		echo "-- ! Qt version $VERSION isn't supported yet. Check back later or submit patches"
+		exit 1
+		;;
+esac
+
+export QT6WINDOWS7_URL="https://github.com/$win7_owner/$win7_repo/archive/$win7_commit.tar.gz"
+export QT6WINDOWS7_DIR="$win7_repo-$win7_commit"
+
 VERSION_SHORT=$(echo "$VERSION" | cut -d'.' -f1-2)
 export VERSION_SHORT
 
@@ -19,11 +40,15 @@ export DOWNLOAD_URL="$_base/$ARTIFACT"
 export OPENBSD_PATCHES_URL="$_base/openbsd-patches-$VERSION.tar.zst"
 export SOLARIS_PATCHES_URL="$_base/solaris-patches-$VERSION.tar.zst"
 
-# Qt6Windows7 stuff
-_owner=crueter
-_repo="qt6windows7"
-_sha="fbe8760e8b0d6ad16e940ddec10ac5db6bec585c"
+# Version check functions
+qt_67() {
+	[ "$VERSION" = 6.7.3 ]
+}
 
-export QT6WINDOWS7_URL="https://github.com/$_owner/$_repo/archive/$_sha.tar.gz"
-export QT6WINDOWS7_VERSION=6.9.3
-export QT6WINDOWS7_DIR="$_repo-$_sha"
+qt_69() {
+	[ "$VERSION" = 6.9.3 ]
+}
+
+qt_610() {
+	[ "$VERSION" = 6.10.2 ]
+}
