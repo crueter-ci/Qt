@@ -90,7 +90,11 @@ configure() {
 			;;
 	esac
 
-	CONFIG+=(-default-qpa "$dqpa")
+	if qt_67; then
+		CONFIG+=(-qpa "$dqpa")
+	else
+		CONFIG+=(-default-qpa "$dqpa")
+	fi
 
 	#########################################
 	# Multimedia Handling.                  #
