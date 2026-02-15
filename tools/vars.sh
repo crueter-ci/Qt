@@ -2,7 +2,7 @@
 
 ## Common variables ##
 
-export VERSION=6.9.3
+export VERSION=6.10.2
 VERSION_SHORT=$(echo "$VERSION" | cut -d'.' -f1-2)
 export VERSION_SHORT
 
