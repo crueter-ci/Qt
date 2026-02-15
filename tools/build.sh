@@ -154,7 +154,7 @@ configure() {
 	[ "$SHARED" = true ] || EXTRACONFIG="$EXTRACONFIG -gc-binaries"
 
 	# Submodules
-	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia,qtcharts"
+	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia,qtcharts,qtgraphs,qtquick3d"
 	! unix || SUBMODULES="$SUBMODULES,qtwayland"
 
 	# Vulkan is on for everything except macos
@@ -198,7 +198,7 @@ configure() {
 	# shellcheck disable=SC2086
 	./configure $EXTRACONFIG $QPA $MM $VK $DEPLOY $DBUS $PKG -nomake tests -nomake examples \
 		-submodules "$SUBMODULES" -optimize-size -no-pch -no-ltcg \
-		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3d,qtquick3dphysics,qtdoc,qt5compat \
+		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3dphysics,qtdoc,qt5compat \
 		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
 		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
 		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher \
