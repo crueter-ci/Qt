@@ -1,0 +1,304 @@
+name: Build Qt
+
+on:
+  workflow_call:
+    inputs:
+      build-windows:
+        description: build windows
+        type: boolean
+        default: true
+      build-linux:
+        description: build linux
+        type: boolean
+        default: true
+      build-macos:
+        description: build macOS
+        type: boolean
+        default: true
+      windows-runner:
+        description: windows runner to use for amd64
+        type: string
+        default: windows-2025
+      version:
+        description: qt version
+        type: string
+        required: true
+      release:
+        description: create a release
+        type: boolean
+        default: false
+
+env:
+  CCACHE: "true"
+  VERSION: ${{ inputs.version }}
+
+jobs:
+  windows:
+    if: ${{ inputs.build-windows }}
+    name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
+    runs-on: ${{ matrix.os.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - runs-on: ${{ inputs.windows-runner }}
+            arch: amd64
+            msystem: mingw64
+
+          - runs-on: windows-11-arm
+            arch: arm64
+            msystem: clangarm64
+        platform: [windows, mingw]
+
+    env:
+      ARCH: ${{ matrix.os.arch }}
+      PLATFORM: ${{ matrix.platform }}
+
+    defaults:
+      run:
+        shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install zstd
+        if: matrix.platform == 'windows'
+        run: choco install zstandard
+
+      - name: Setup ccache
+        uses: crueter/ccache-action@master
+        with:
+          key: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}
+          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}
+          install: binary
+          max-size: 2G
+
+      - name: Setup MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        if: matrix.platform == 'windows'
+        with:
+          arch: ${{ matrix.os.arch }}
+
+      - uses: lukka/get-cmake@latest
+        if: matrix.platform == 'windows'
+
+      - name: Fix MSVC being stupid
+        if: matrix.platform == 'windows' && matrix.os.arch == 'amd64' && inputs.windows-runner == 'windows-2025-vs2026'
+        shell: cmd
+        run: mklink /D "C:\Program Files\Microsoft Visual Studio\18\Community" "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
+
+      - name: Fix MSVC being stupid (arm)
+        if: matrix.platform == 'windows' && (matrix.os.arch == 'arm64' || inputs.windows-runner != 'windows-2025-vs2026')
+        shell: cmd
+        run: mklink /D "C:\Program Files\Microsoft Visual Studio\2022\Community" "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
+
+      - name: Setup MSYS2 environment
+        uses: msys2/setup-msys2@v2
+        if: matrix.platform == 'mingw'
+        with:
+          msystem: ${{ matrix.os.msystem }}
+          update: true
+          install: >-
+            git make unzip pkgconf diffutils patch
+          pacboy: >-
+            toolchain:p vulkan-devel:p pkg-config:p
+            cmake:p ninja:p ccache:p libjpeg-turbo:p
+            zlib:p libpng:p double-conversion:p
+            freetype:p libtiff:p
+
+      - name: Build (MSYS)
+        if: matrix.platform == 'mingw'
+        run: ./tools/build.sh
+
+      - name: Build (MSVC)
+        if: matrix.platform == 'windows'
+        run: |
+          PLATFORM=${{ matrix.platform }} ./tools/build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}
+          path: artifacts/*
+
+  arch:
+    if: ${{ inputs.build-linux }}
+    name: "Arch Linux (${{ matrix.arch }})"
+    runs-on: ${{ matrix.runs-on }}
+    container: ghcr.io/pkgforge-dev/archlinux:latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            arch: amd64
+
+          - runs-on: ubuntu-24.04-arm
+            arch: aarch64
+
+    env:
+      ARCH: ${{ matrix.arch }}
+      PLATFORM: linux
+      PACKAGE: true
+      PKGNAME: archlinux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: crueter/ccache-action@master
+        with:
+          key: archlinux-${{ env.ARCH }}-${{ inputs.version }}
+          restore-keys: archlinux-${{ env.ARCH }}-${{ inputs.version }}
+          max-size: 2G
+          update-package-index: true
+          install: binary
+
+      - name: Deps
+        run: ./deps/arch.sh
+
+      - name: Build
+        run: ./tools/build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: archlinux-${{ matrix.arch }}-${{ inputs.version }}
+          path: artifacts/*
+
+  linux:
+    if: ${{ inputs.build-linux }}
+    name: "Linux (${{ matrix.arch }})"
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runs-on: ubuntu-latest
+            arch: amd64
+
+          - runs-on: ubuntu-24.04-arm
+            arch: aarch64
+
+    env:
+      ARCH: ${{ matrix.arch }}
+      PLATFORM: linux
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup ccache
+        uses: crueter/ccache-action@master
+        with:
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
+          max-size: 2G
+          install: binary
+
+      - name: Deps
+        run: ./deps/linux.sh
+
+      - name: Build
+        run: ./tools/build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.arch }}
+          path: artifacts/*
+
+  macos:
+    if: ${{ inputs.build-macos }}
+    name: "macOS (universal)"
+    runs-on: macos-latest
+    strategy:
+      fail-fast: false
+
+    env:
+      PLATFORM: macos
+      ARCH: universal
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup ccache
+        uses: crueter/ccache-action@master
+        with:
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
+          install: binary
+          max-size: 2G
+
+      - name: Get Dependencies
+        run: |
+          chmod a+x ./deps/macos.sh
+          ./deps/macos.sh
+
+      - name: Build
+        run: |
+          chmod a+x ./tools/build.sh
+          ./tools/build.sh
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-universal-${{ inputs.version }}
+          path: artifacts/*
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [windows, arch, linux, macos]
+
+    if: always() && inputs.release && !cancelled()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*-${{ inputs.version }}'
+
+      - name: Generate Changelog
+        run: ./tools/changelog.sh > changelog.md
+
+      - name: Release
+        uses: softprops/action-gh-release@v2.3.2
+        with:
+          body_path: ./changelog.md
+          name: Qt ${{ inputs.version }}
+          tag_name: v${{ inputs.version }}
+          files: artifacts/*.tar.zst*
+
+  fake-release:
+    name: Fake Release
+    runs-on: ubuntu-latest
+    needs: [windows, arch, linux, macos]
+
+    if: always() && !inputs.release && !cancelled()
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*-${{ inputs.version }}'
+
+      - name: Generate Changelog
+        run: ./tools/changelog.sh > changelog.md
+
+      - name: Test
+        run: |
+          echo "Version: $VERSION"
+          echo
+          cat changelog.md
+
+      - name: Check artifacts
+        run:
+          find artifacts -name "*.tar.zst*"
