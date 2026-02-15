@@ -58,11 +58,14 @@ jobs:
         if: matrix.platform == 'windows'
 
       - name: Fix MSVC being stupid
-        if: matrix.platform == 'windows'
+        if: matrix.platform == 'windows' && matrix.os.arch == 'amd64'
         shell: cmd
-        run: |
-          # WHAT THE FUCK
-          mklink /D "C:\Program Files\Microsoft Visual Studio\18\Community" "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
+        run: mklink /D "C:\Program Files\Microsoft Visual Studio\18\Community" "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
+
+      - name: Fix MSVC being stupid (arm)
+        if: matrix.platform == 'windows' && matrix.os.arch == 'arm64'
+        shell: cmd
+        run: mklink /D "C:\Program Files\Microsoft Visual Studio\2022\Community" "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
 
       - name: Setup MSYS2 environment
         uses: msys2/setup-msys2@v2
