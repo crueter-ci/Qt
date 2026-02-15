@@ -95,7 +95,7 @@ configure() {
 
 	# Multimedia backends
 	case "$PLATFORM" in
-		mingw|windows) MM="-feature-wasapi -feature-wmf" ;;
+		mingw|windows) ;;
 		macos) MM="-feature-avfoundation -feature-videotoolbox" ;;
 		*) MM="-feature-pulseaudio" ;;
 	esac
