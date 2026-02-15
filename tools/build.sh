@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # shellcheck disable=SC1091
 
@@ -40,22 +40,27 @@ fi
 configure() {
 	echo "-- Configuring $PRETTY_NAME..."
 
-	FLAGS="-g0"
-	if msvc; then
-		# /Gy - function-sectors
-		# /Gw - data-sections
-		# /EHs- /EHc- - EXCEPTIONS ARE FOR LOSERS
-		# /await:strict - force new coroutine abi
-		FLAGS="/Gy /Gw /EHs- /EHc- /await:strict"
+	#########################################
+	# C/CXX flags.                          #
+	#########################################
+	FLAGS="-g0 -Os"
 
-		# /DYNAMICBASE:NO - disable ASLR on amd64 bcz why not
-		[ "$ARCH" != amd64 ] || FLAGS="$FLAGS /DYNAMICBASE:NO"
-		set -- "$@" -DQT_BUILD_QDOC=OFF
-	else
-		EXTRACONFIG="-reduce-exports"
-		# Optimize for size.
-		FLAGS="$FLAGS -Os"
-	fi
+	# Custom MSVC options, and also frame pointer stuff.
+	case "$PLATFORM" in
+		windows)
+			# /Gy - function-sectors
+			# /Gw - data-sections
+			# /EHs- /EHc- - EXCEPTIONS ARE FOR LOSERS
+			# /await:strict - force new coroutine abi
+			FLAGS="/Gy /Gw /EHs- /EHc- /await:strict"
+
+			# /DYNAMICBASE:NO - disable ASLR on amd64 bcz why not
+			arm64 || FLAGS="$FLAGS /DYNAMICBASE:NO"
+			set -- "$@" -DQT_BUILD_QDOC=OFF
+			;;
+		mingw) ;;
+		*) FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables" ;;
+	esac
 
 	# PIC/PIE handling
 	case "$PLATFORM" in
@@ -64,57 +69,63 @@ configure() {
 		*) ;;
 	esac
 
-	# average openbsd moment
-	if openbsd; then
-		set -- "$@" -DCMAKE_AR="$(which llvm-ar-19)" -DCMAKE_RANLIB="$(which llvm-ranlib-19)"
-	fi
-
-	# linker flags that save some time during link phase
-	# all of these are just garbage collection basically, also identical code folding
-	case "$PLATFORM" in
-		windows) LDFLAGS="/OPT:REF /OPT:ICF" ;;
-		macos) LDFLAGS="-Wl,-dead_strip -Wl,-dead_strip" ;;
-		*) LDFLAGS="-Wl,--gc-sections" ;;
-	esac
-
-	# Omit frame pointer and unwind tables on non-Windows platforms
-	# saves a bit of space
-	windows || FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables"
-
-	# QPA selection
+	#########################################
+	# QPA Handling.                         #
+	#########################################
 	case "$PLATFORM" in
 		mingw|windows) dqpa=windows ;;
 		macos) dqpa=cocoa ;;
 		linux) dqpa=xcb
-			QPA="-xcb -qpa xcb;wayland -feature-wayland -gtk" ;;
-		*    ) dqpa=xcb
-			QPA="-xcb -qpa xcb -gtk" ;;
+			CONFIG+=(
+				-xcb
+				-qpa "xcb;wayland"
+				-gtk
+			)
+
+			FEATURES+=(wayland)
+			;;
+		*    )
+			dqpa=xcb
+			CONFIG+=(-xcb -qpa xcb -gtk)
+			;;
 	esac
 
-	QPA="$QPA -default-qpa $dqpa"
+	CONFIG+=(-default-qpa "$dqpa")
 
-	# Multimedia backends
+	#########################################
+	# Multimedia Handling.                  #
+	#########################################
+
+	# backends
 	case "$PLATFORM" in
 		mingw|windows) ;;
-		macos) MM="-feature-avfoundation -feature-videotoolbox" ;;
-		*) MM="-feature-pulseaudio" ;;
+		macos) FEATURES+=(avfoundation videotoolbox) ;;
+		*) FEATURES+=(pulseaudio) ;;
 	esac
 
 	# FFmpeg + OpenSSL
-	# Windows is actually better off without this since we can just use the system
-	# wmf + wasapi + schannel.
-
 	if ! windows; then
-		MM="$MM -feature-ffmpeg -feature-thread -openssl-linked"
+		! qt_67 || FEATURES+=(ffmpeg thread)
+
+		CONFIG+=(-openssl-linked)
+		CMAKE+=(
+			-DOPENSSL_USE_STATIC_LIBS=ON
+			-DFFMPEG_DIR="$FFMPEG_DIR"
+			-DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
+			-DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
+			-DCMAKE_PREFIX_PATH="$OPENSSL_DIR"
+			-DOpenSSL_ROOT="$OPENSSL_DIR"
+		)
 
 		export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
-
-		set -- "$@" -DOPENSSL_USE_STATIC_LIBS=ON -DFFMPEG_DIR="$FFMPEG_DIR" -DOPENSSL_ROOT_DIR="$OPENSSL_DIR" \
-			-DCMAKE_FIND_LIBRARY_SUFFIXES=".a" -DCMAKE_PREFIX_PATH="$OPENSSL_DIR" -DOpenSSL_ROOT="$OPENSSL_DIR" # -DOPENSSL_USE_STATIC_LIBS=ON
 
 		echo "-- * FFmpeg dir: $FFMPEG_DIR"
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
 	fi
+
+	#########################################
+	# Dependency Handling.                  #
+	#########################################
 
 	# libva
 	if unix; then
@@ -125,8 +136,8 @@ configure() {
 		pkg-config --cflags --libs libva-drm
 
 		# force libva custom dir into the thing
-		FLAGS="$FLAGS $(pkg-config --cflags --libs libva-drm)"
-		LDFLAGS="$LDFLAGS $(pkg-config --cflags --libs libva-drm)"
+		FLAGS="$FLAGS $(pkg-config --cflags --libs libva-drm) "
+		LDFLAGS="$LDFLAGS $(pkg-config --cflags --libs libva-drm) "
 	fi
 
 	# libdrm
@@ -136,79 +147,172 @@ configure() {
 		pkg-config --cflags --libs libdrm
 	fi
 
+	# CCache
 	if [ "${CCACHE:-true}" = true ]; then
 		echo "-- Using ccache at: $CCACHE_PATH"
-		set -- "$@" -DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}" -DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
+
+		CMAKE+=(
+			-DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}"
+			-DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
+		)
 	fi
 
-	# I have no idea what's going on with MSVC, you almost have to wonder if it has something to do
-	# with them firing every single one of their developers in 2023
+	# MSVC on ARM needs static runtime for some glorious reason.
 	if msvc && [ "$ARCH" = arm64 ]; then
-		EXTRACONFIG="$EXTRACONFIG -static-runtime"
+		CONFIG+=(-static-runtime)
 	fi
 
-	# UNIX builds shared because you do not want to bundle every Qt plugin under the sun
-	set -- "$@" -DBUILD_SHARED_LIBS="$SHARED"
+	# UNIX builds are shared.
+	CMAKE+=(-DBUILD_SHARED_LIBS="$SHARED")
 
 	# also, gc-binaries can't be done on shared
-	[ "$SHARED" = true ] || EXTRACONFIG="$EXTRACONFIG -gc-binaries"
+	[ "$SHARED" = true ] || CONFIG+=(-gc-binaries)
 
-	# Submodules
-	SUBMODULES="qtbase,qtdeclarative,qttools,qtmultimedia,qtcharts,qtgraphs,qtquick3d"
-	! unix || SUBMODULES="$SUBMODULES,qtwayland"
+	#########################################
+	# Options passed directly to configure. #
+	#########################################
+	CONFIG+=(
+		-reduce-exports
+		-optimize-size -no-pch -no-ltcg
+		-nomake tests -nomake examples
+	)
 
-	# Vulkan is on for everything except macos
-	macos || VK="-feature-vulkan"
+	#########################################
+	# Disabled features.                    #
+	#########################################
 
-	# deploy stuff
-	DEPLOY="-no-feature-androiddeployqt -no-feature-windeployqt -no-feature-macdeployqt"
+	DISABLED_FEATURES+=(
+		icu qml-network libresolv dladdr
+		sql printdialog printer printsupport
+		androiddeployqt windeployqt macdeployqt
+		designer assistant pixeltool testlib
+		qml-preview qml-profiler
+	)
 
-	# DBus disabled on everything not named linux
-	if linux; then
-		DBUS="-feature-dbus"
-	else
-		DBUS="-no-feature-dbus"
+	if qt_610; then
+		DISABLED_FEATURES+=(localserver)
+	fi
+
+	if ! qt_67; then
+		DISABLED_FEATURES+=(quickcontrols2-fluentwinui3)
 	fi
 
 	if mingw; then
-		PKG="-no-feature-system-jpeg -no-feature-system-zlib -no-feature-system-pcre2 -no-feature-system-freetype -qt-libmd4c -qt-webp"
+		DISABLED_FEATURES+=(
+			system-jpeg system-zlib system-freetype system-pcre2
+		)
+		CONFIG+=(-qt-libmd4c -qt-webp)
+	fi
+
+	DISABLED+=(zstd)
+
+	# DBus disabled on everything not named linux
+	if linux; then
+		FEATURES+=(dbus)
+	else
+		DISABLED_FEATURES+=(dbus)
+	fi
+
+	for feat in "${DISABLED_FEATURES[@]}"; do
+		CONFIG+=(-no-feature-"$feat")
+	done
+
+	for feat in "${DISABLED[@]}"; do
+		CONFIG+=(-no-"$feat")
+	done
+
+	#########################################
+	# Enabled features.                     #
+	#########################################
+	macos || FEATURES+=(vulkan)
+	FEATURES+=(filesystemwatcher)
+
+	for feat in "${FEATURES[@]}"; do
+		CONFIG+=(-feature-"$feat")
+	done
+
+	#########################################
+	# Enabled submodules.                   #
+	#########################################
+	SUBMODULES=qtbase,qtdeclarative,qttools,qtmultimedia,qtcharts
+	if unix; then SUBMODULES+=,qtwayland; fi
+
+	case "$VERSION" in
+		6.7*) ;;
+		6.9*) SUBMODULES+=,qtmultimedia ;;
+		6.10*) SUBMODULES+=,qtmultimedia,qtgraphs,qtquick3d ;;
+	esac
+
+	CONFIG+=(-submodules "$SUBMODULES")
+
+	#########################################
+	# Skipped submodules.                   #
+	#########################################
+	SKIP=qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3dphysics,qtdoc,qt5compat
+	case "$VERSION" in
+		6.7*) SKIP+=,qtquick3d,qtmultimedia ;;
+		6.9*) SKIP+=,qtquick3d ;;
+		6.10*) ;;
+	esac
+
+	CONFIG+=(-skip "$SUBMODULES")
+
+	#########################################
+	# Linker flags.                         #
+	#########################################
+
+	# all of these are just garbage collection basically, also identical code folding
+	case "$PLATFORM" in
+		windows) LDFLAGS+="/OPT:REF /OPT:ICF" ;;
+		macos) LDFLAGS+="-Wl,-dead_strip -Wl,-dead_strip" ;;
+		*) LDFLAGS+="-Wl,--gc-sections" ;;
+	esac
+
+	#########################################
+	# CMake options.                        #
+	#########################################
+	CMAKE+=(
+		-DCMAKE_CXX_FLAGS="$FLAGS"
+		-DCMAKE_C_FLAGS="$FLAGS"
+		-DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
+		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
+	)
+
+	if qt_69; then
+		CMAKE+=(-DQT_FEATURE_cpp_winrt=OFF)
 	fi
 
 	# package target (arch linux)
 	if [ "$PACKAGE" = true ]; then
-		set -- "$@" -DCMAKE_INSTALL_PREFIX=/usr \
-			-DINSTALL_BINDIR=lib/qt6/bin \
-			-DINSTALL_PUBLICBINDIR=usr/bin \
-			-DINSTALL_LIBEXECDIR=lib/qt6 \
-			-DINSTALL_DOCDIR=share/doc/qt6 \
-			-DINSTALL_ARCHDATADIR=lib/qt6 \
-			-DINSTALL_DATADIR=share/qt6 \
-			-DINSTALL_INCLUDEDIR=include/qt6 \
+		CMAKE+=(
+			-DCMAKE_INSTALL_PREFIX=/usr
+			-DINSTALL_BINDIR=lib/qt6/bin
+			-DINSTALL_PUBLICBINDIR=usr/bin
+			-DINSTALL_LIBEXECDIR=lib/qt6
+			-DINSTALL_DOCDIR=share/doc/qt6
+			-DINSTALL_ARCHDATADIR=lib/qt6
+			-DINSTALL_DATADIR=share/qt6
+			-DINSTALL_INCLUDEDIR=include/qt6
 			-DINSTALL_MKSPECSDIR=lib/qt6/mkspecs
+		)
 	fi
 
-	# These are the recommended configuration options from Qt
-	# We skip snca like quick3d, activeqt, etc.
-	# Also disable zstd, icu, and renderdoc; these are useless
-	# and cause more issues than they solve.
-	# Note that ltcg is absolutely radioactive and bloats static libs by like 5-10x. Please do not use it
 
-	# TODO: organize ts
-	# TODO: -no-feature-glib
-	# shellcheck disable=SC2086
-	./configure $EXTRACONFIG $QPA $MM $VK $DEPLOY $DBUS $PKG -nomake tests -nomake examples \
-		-submodules "$SUBMODULES" -optimize-size -no-pch -no-ltcg \
-		-skip qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3dphysics,qtdoc,qt5compat \
-		-no-feature-icu -release -no-zstd -no-feature-qml-network -no-feature-libresolv -no-feature-dladdr \
-		-no-feature-sql -no-feature-printdialog -no-feature-printer -no-feature-printsupport -no-feature-androiddeployqt \
-		-no-feature-designer -no-feature-assistant -no-feature-pixeltool -feature-filesystemwatcher -no-feature-localserver  \
-		-no-feature-quickcontrols2-fluentwinui3 -no-feature-testlib -no-feature-qml-preview -no-feature-qml-profiler \
-		-- "$@" \
-		-DCMAKE_CXX_FLAGS="$FLAGS" -DCMAKE_C_FLAGS="$FLAGS" -DCMAKE_OSX_DEPLOYMENT_TARGET="${MACOSX_DEPLOYMENT_TARGET}" \
-		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" -DQT_FEATURE_cpp_winrt=OFF
+	#########################################
+	## NOW CONFIGURE!                      ##
+	#########################################
 
-	grep -i 'libssl' CMakeCache.txt || true
-	grep -i 'charts' CMakeCache.txt || true
+	echo "-- Compiler flags: $FLAGS"; echo
+	echo "-- Linker flags: $LDFLAGS"; echo
+	echo "-- Enabled features: ${FEATURES[*]}"; echo
+	echo "-- Disabled features: ${DISABLED_FEATURES[*]}"; echo
+	echo "-- Disabled flags: ${DISABLED[*]}"; echo
+	echo "-- Configure flags: ${CONFIG[*]}"; echo
+	echo "-- CMake flags: ${CMAKE[*]}"; echo
+	echo "-- Submodules: $SUBMODULES"; echo
+	echo "-- Skipping: $SKIP"; echo
+
+	./configure "${CONFIG[@]}" -- "${CMAKE[@]}"
 }
 
 build() {
