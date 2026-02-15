@@ -19,7 +19,7 @@ esac
 # but make android manual specification
 ROOTDIR="$PWD"
 : "${OUT_DIR:=$PWD/out}"
-: "${MACOSX_DEPLOYMENT_TARGET:=11.0}"
+: "${MACOSX_DEPLOYMENT_TARGET:=13.0}"
 
 mkdir -p "$ROOTDIR"/artifacts
 
