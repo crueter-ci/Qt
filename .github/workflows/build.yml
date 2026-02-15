@@ -47,6 +47,7 @@ jobs:
           key: ${{ matrix.platform }}-${{ matrix.os.arch }}
           restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
           install: binary
+          max-size: 2G
 
       - name: Setup MSVC
         uses: ilammy/msvc-dev-cmd@v1
@@ -201,6 +202,7 @@ jobs:
           key: ${{ env.PLATFORM }}-${{ env.ARCH }}
           restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
           install: binary
+          max-size: 2G
 
       - name: Get Dependencies
         run: |
