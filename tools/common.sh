@@ -33,10 +33,6 @@ must_install() {
 
 must_install curl zstd cmake xz ninja unzip patch
 
-if [ "$PLATFORM" = "openbsd" ]; then
-	must_install llvm-ar-19 llvm-ranlib-19
-fi
-
 case "$ARTIFACT" in
 	*.zip) must_install unzip ;;
 	*.tar.*) ;;
@@ -74,9 +70,7 @@ extract() {
 	esac
 
 	# qt6windows7 patch
-	if [ "$VERSION" = "$QT6WINDOWS7_VERSION" ] && \
-		[ "$PLATFORM" != openbsd ] && \
-		{ [ "$ARCH" = amd64 ] || [ "$PLATFORM" = macos ] || [ "$PLATFORM" = linux ]; }; then
+	if [ "$QT6WINDOWS7" = "1" ] && msvc && amd64; then
 		echo "-- Patching for Windows 7..."
 
 		curl -L "$QT6WINDOWS7_URL" -o w7.tar.gz
@@ -84,13 +78,6 @@ extract() {
 
 		cp -r "$QT6WINDOWS7_DIR"/qtbase/src/* "$DIRECTORY"/qtbase/src
 		rm w7.tar.gz
-	fi
-
-	# openbsd patches
-	if [ "$PLATFORM" = "openbsd" ]; then
-		cd "$ROOTDIR"
-		curl -L "$OPENBSD_PATCHES_URL" -o "$ROOTDIR/artifacts/openbsd-patches-$VERSION.tar.zst"
-		mk/openbsd.sh apply
 	fi
 
 	# solaris patches
@@ -102,10 +89,15 @@ extract() {
 
 	# misc in-tree patches
 	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-	find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
-		echo "-- Applying patchset $(basename -- "$patch")"
-		patch -p1 < "$patch"
-	done
+
+	# current patchset doesn't apply
+	# TODO(crueter): Versioned patchsets.
+	if ! qt_67; then
+		find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
+			echo "-- Applying patchset $(basename -- "$patch")"
+			patch -p1 < "$patch"
+		done
+	fi
 
 	# lmao
 	# -i isn't POSIX compliant but MinGW environments are strictly GNU so it's fine.
