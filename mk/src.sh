@@ -26,7 +26,7 @@ fi
 echo "-- Cleaning..."
 cd "$DIRECTORY"
 rm -rf qtweb* qtscxml qtpositioning qtconnectivity pyside6 qtquicktimeline qtremoteobjects \
-	qtvirtualkeyboard tests qtspeech qtserial* qtsensors qtquick3d* qt3d qtcoap qtcharts \
+	qtvirtualkeyboard tests qtspeech qtserial* qtsensors qtquick3d* qt3d qtcoap \
 	qtactiveqt qtdatavis3d qtdoc qtgraphs qtgrpc qthttpserver qtlanguageserver qtlocation \
 	qtlottie qtmqtt qtnetworkauth qtquickeffectmaker
 

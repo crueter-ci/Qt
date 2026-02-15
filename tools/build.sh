@@ -208,7 +208,7 @@ configure() {
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS" -DQT_FEATURE_cpp_winrt=OFF
 
 	grep -i 'libssl' CMakeCache.txt || true
-	grep -i 'libcrypto' CMakeCache.txt || true
+	grep -i 'charts' CMakeCache.txt || true
 }
 
 build() {
