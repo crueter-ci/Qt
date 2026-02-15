@@ -13,7 +13,13 @@ artifact() {
     NAME="$1"
     PLATFORM="$2"
 
-    BASE_URL="${BASE_DOWNLOAD_URL}/${TAG}/${FILENAME}-${PLATFORM}-${VERSION}.tar.zst"
+	full_file="${FILENAME}-${PLATFORM}-${VERSION}.tar.zst"
+
+	if [ ! -f artifacts/"$full_file" ]; then
+		return
+	fi
+
+    BASE_URL="${BASE_DOWNLOAD_URL}/${TAG}/${full_file}"
 
     COL1="[$NAME]($BASE_URL)"
 

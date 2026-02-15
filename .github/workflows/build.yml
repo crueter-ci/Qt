@@ -2,220 +2,43 @@ name: CI
 
 on:
   workflow_call:
+    inputs:
+      release:
+        description: create a release
+        type: boolean
+        default: false
 
 env:
   CCACHE: "true"
 
 jobs:
-  windows:
-    name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
-    runs-on: ${{ matrix.os.runs-on }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - runs-on: windows-2025-vs2026
-            arch: amd64
-            msvc_arch: amd64
-            msystem: mingw64
+  qt-6-7-3:
+    name: Qt 6.7.3
+    uses: ./.github/workflows/platforms.yml
+    with:
+      build-windows: false
+      build-linux: false
+      build-macos: true
+      version: 6.7.3
+      release: ${{ inputs.release }}
 
-          - runs-on: windows-11-arm
-            arch: arm64
-            msvc_arch: arm64
-            msystem: clangarm64
-        platform: [windows, mingw]
+  qt-6-9-3:
+    name: Qt 6.9.3
+    uses: ./.github/workflows/platforms.yml
+    with:
+      build-windows: true
+      build-linux: true
+      build-macos: true
+      version: 6.9.3
+      release: ${{ inputs.release }}
 
-    env:
-      ARCH: ${{ matrix.os.arch }}
-      PLATFORM: ${{ matrix.platform }}
-
-    defaults:
-      run:
-        shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install zstd
-        if: matrix.platform == 'windows'
-        run: |
-          choco install zstandard
-
-      - name: Setup ccache
-        uses: crueter/ccache-action@master
-        with:
-          key: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          install: binary
-          max-size: 2G
-
-      - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
-        if: matrix.platform == 'windows'
-        with:
-          arch: ${{ matrix.os.msvc_arch }}
-
-      - uses: lukka/get-cmake@latest
-        if: matrix.platform == 'windows'
-
-      - name: Fix MSVC being stupid
-        if: matrix.platform == 'windows' && matrix.os.arch == 'amd64'
-        shell: cmd
-        run: mklink /D "C:\Program Files\Microsoft Visual Studio\18\Community" "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
-
-      - name: Fix MSVC being stupid (arm)
-        if: matrix.platform == 'windows' && matrix.os.arch == 'arm64'
-        shell: cmd
-        run: mklink /D "C:\Program Files\Microsoft Visual Studio\2022\Community" "C:\Program Files\Microsoft Visual Studio\2022\Enterprise"
-
-      - name: Setup MSYS2 environment
-        uses: msys2/setup-msys2@v2
-        if: matrix.platform == 'mingw'
-        with:
-          msystem: ${{ matrix.os.msystem }}
-          update: true
-          install: >-
-            git make unzip pkgconf diffutils patch
-          pacboy: >-
-            toolchain:p vulkan-devel:p pkg-config:p
-            cmake:p ninja:p ccache:p libjpeg-turbo:p
-            zlib:p libpng:p double-conversion:p
-            freetype:p libtiff:p
-
-      - name: Build (MSYS)
-        if: matrix.platform == 'mingw'
-        run: ./tools/build.sh
-
-      - name: Build (MSVC)
-        if: matrix.platform == 'windows'
-        run: |
-          PLATFORM=${{ matrix.platform }} ./tools/build.sh
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.platform }}-${{ matrix.os.arch }}
-          path: artifacts/*
-
-  arch:
-    name: "Arch Linux (${{ matrix.arch }})"
-    runs-on: ${{ matrix.runs-on }}
-    container: ghcr.io/pkgforge-dev/archlinux:latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runs-on: ubuntu-latest
-            arch: amd64
-
-          - runs-on: ubuntu-24.04-arm
-            arch: aarch64
-
-    env:
-      ARCH: ${{ matrix.arch }}
-      PLATFORM: linux
-      PACKAGE: true
-      PKGNAME: archlinux
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup ccache
-        uses: crueter/ccache-action@master
-        with:
-          key: archlinux-${{ env.ARCH }}
-          restore-keys: archlinux-${{ env.ARCH }}
-          max-size: 2G
-          update-package-index: true
-          install: binary
-
-      - name: Deps
-        run: ./deps/arch.sh
-
-      - name: Build
-        run: ./tools/build.sh
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: archlinux-${{ matrix.arch }}
-          path: artifacts/*
-
-  linux:
-    name: "Linux (${{ matrix.arch }})"
-    runs-on: ${{ matrix.runs-on }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - runs-on: ubuntu-latest
-            arch: amd64
-
-          - runs-on: ubuntu-24.04-arm
-            arch: aarch64
-
-    env:
-      ARCH: ${{ matrix.arch }}
-      PLATFORM: linux
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup ccache
-        uses: crueter/ccache-action@master
-        with:
-          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          max-size: 2G
-          install: binary
-
-      - name: Deps
-        run: ./deps/linux.sh
-
-      - name: Build
-        run: ./tools/build.sh
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: linux-${{ matrix.arch }}
-          path: artifacts/*
-
-  macos:
-    name: "macOS (universal)"
-    runs-on: macos-latest
-    strategy:
-      fail-fast: false
-
-    env:
-      PLATFORM: macos
-      ARCH: universal
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup ccache
-        uses: crueter/ccache-action@master
-        with:
-          key: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}
-          install: binary
-          max-size: 2G
-
-      - name: Get Dependencies
-        run: |
-          chmod a+x ./deps/macos.sh
-          ./deps/macos.sh
-
-      - name: Build
-        run: |
-          chmod a+x ./tools/build.sh
-          ./tools/build.sh
-
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: macos-universal
-          path: artifacts/*
+  qt-6-10-2:
+    name: Qt 6.10.2
+    uses: ./.github/workflows/platforms.yml
+    with:
+      build-windows: true
+      build-linux: true
+      build-macos: true
+      windows-runner: windows-2025-vs2026
+      version: 6.10.2
+      release: ${{ inputs.release }}
