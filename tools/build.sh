@@ -176,10 +176,11 @@ configure() {
 	# Options passed directly to configure. #
 	#########################################
 	CONFIG+=(
-		-reduce-exports
 		-optimize-size -no-pch -no-ltcg
 		-nomake tests -nomake examples
 	)
+
+	msvc || CONFIG+=(-reduce-exports)
 
 	#########################################
 	# Disabled features.                    #
