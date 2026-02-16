@@ -92,12 +92,20 @@ extract() {
 
 	# current patchset doesn't apply
 	# TODO(crueter): Versioned patchsets.
-	if ! qt_67; then
-		find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
-			echo "-- Applying patchset $(basename -- "$patch")"
-			patch -p1 < "$patch"
-		done
-	fi
+	find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
+		case "$patch" in
+			*6.7*)
+				echo "-- Applying patchset $(basename -- "$patch")"
+				patch -p1 < "$patch"
+				;;
+			*)
+				if ! qt_67; then
+					echo "-- Applying patchset $(basename -- "$patch")"
+					patch -p1 < "$patch"
+				fi
+				;;
+		esac
+	done
 
 	# lmao
 	# -i isn't POSIX compliant but MinGW environments are strictly GNU so it's fine.
