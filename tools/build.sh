@@ -55,7 +55,7 @@ configure() {
 			FLAGS="/Gy /Gw /EHs- /EHc- /await:strict"
 
 			# /DYNAMICBASE:NO - disable ASLR on amd64 bcz why not
-			arm64 || FLAGS="$FLAGS /DYNAMICBASE:NO"
+			arm || FLAGS="$FLAGS /DYNAMICBASE:NO"
 			set -- "$@" -DQT_BUILD_QDOC=OFF
 			;;
 		mingw) ;;
