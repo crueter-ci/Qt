@@ -239,13 +239,13 @@ configure() {
 	#########################################
 	# Enabled submodules.                   #
 	#########################################
-	SUBMODULES=qtbase,qttools,qtcharts
+	SUBMODULES=qtbase,qtdeclarative,qttools,qtcharts
 	if unix; then SUBMODULES+=,qtwayland; fi
 
 	case "$VERSION" in
 		6.7*) ;;
-		6.9*) SUBMODULES+=,qtdeclarative,qtmultimedia ;;
-		6.10*) SUBMODULES+=,qtdeclarative,qtmultimedia,qtgraphs,qtquick3d ;;
+		6.9*) SUBMODULES+=,qtmultimedia ;;
+		6.10*) SUBMODULES+=,qtmultimedia,qtgraphs,qtquick3d ;;
 	esac
 
 	CONFIG+=(-submodules "$SUBMODULES")
@@ -255,7 +255,7 @@ configure() {
 	#########################################
 	SKIP=qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3dphysics,qtdoc,qt5compat
 	case "$VERSION" in
-		6.7*) SKIP+=,qtquick3d,qtmultimedia,qtdeclarative ;;
+		6.7*) SKIP+=,qtquick3d,qtmultimedia ;;
 		6.9*) SKIP+=,qtquick3d ;;
 		6.10*) ;;
 	esac
