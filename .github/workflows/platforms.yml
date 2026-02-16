@@ -35,7 +35,7 @@ env:
 jobs:
   windows:
     if: ${{ inputs.build-windows }}
-    name: "${{ inputs.version }} ${{ matrix.platform }} (${{ matrix.os.arch }})"
+    name: "${{ matrix.platform }} (${{ matrix.os.arch }})"
     runs-on: ${{ matrix.os.runs-on }}
     strategy:
       fail-fast: false
@@ -123,7 +123,7 @@ jobs:
 
   arch:
     if: ${{ inputs.build-linux }}
-    name: "${{ inputs.version }} Arch Linux (${{ matrix.arch }})"
+    name: "Arch Linux (${{ matrix.arch }})"
     runs-on: ${{ matrix.runs-on }}
     container: ghcr.io/pkgforge-dev/archlinux:latest
     strategy:
@@ -168,7 +168,7 @@ jobs:
 
   linux:
     if: ${{ inputs.build-linux }}
-    name: "${{ inputs.version }} Linux (${{ matrix.arch }})"
+    name: "Linux (${{ matrix.arch }})"
     runs-on: ${{ matrix.runs-on }}
     strategy:
       fail-fast: false
@@ -209,7 +209,7 @@ jobs:
 
   macos:
     if: ${{ inputs.build-macos }}
-    name: "${{ inputs.version }} macOS (universal)"
+    name: "macOS (universal)"
     runs-on: macos-latest
     strategy:
       fail-fast: false
@@ -248,7 +248,7 @@ jobs:
           path: artifacts/*
 
   release:
-    name: Release (${{ inputs.version }})
+    name: Release
     runs-on: ubuntu-latest
     needs: [windows, arch, linux, macos]
 
@@ -275,7 +275,7 @@ jobs:
           files: artifacts/*.tar.zst*
 
   fake-release:
-    name: Fake Release (${{ inputs.version }})
+    name: Fake Release
     runs-on: ubuntu-latest
     needs: [windows, arch, linux, macos]
 

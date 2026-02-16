@@ -5,9 +5,35 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
 
+
 jobs:
-  build:
-    name: Build
-    uses: ./.github/workflows/build.yml
+  qt-6-7-3:
+    name: Qt 6.7.3
+    uses: ./.github/workflows/platforms.yml
     with:
+      build-windows: false
+      build-linux: false
+      build-macos: true
+      version: 6.7.3
+      release: false
+
+  qt-6-9-3:
+    name: Qt 6.9.3
+    uses: ./.github/workflows/platforms.yml
+    with:
+      build-windows: true
+      build-linux: true
+      build-macos: true
+      version: 6.9.3
+      release: false
+
+  qt-6-10-2:
+    name: Qt 6.10.2
+    uses: ./.github/workflows/platforms.yml
+    with:
+      build-windows: true
+      build-linux: true
+      build-macos: true
+      windows-runner: windows-2025-vs2026
+      version: 6.10.2
       release: false
