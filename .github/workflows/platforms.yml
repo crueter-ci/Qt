@@ -273,7 +273,7 @@ jobs:
           body_path: ./changelog.md
           name: Qt ${{ inputs.version }}
           tag_name: v${{ inputs.version }}
-          files: artifacts/*/*.tar.zst*
+          files: artifacts/*.tar.zst*
 
   fake-release:
     name: Fake Release
