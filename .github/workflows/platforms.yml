@@ -105,6 +105,7 @@ jobs:
             cmake:p ninja:p ccache:p libjpeg-turbo:p
             zlib:p libpng:p double-conversion:p
             freetype:p libtiff:p
+          cache: false
 
       - name: Build (MSYS)
         if: matrix.platform == 'mingw'
