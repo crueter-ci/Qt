@@ -189,7 +189,7 @@ configure() {
 		qml-preview qml-profiler wayland-server
 	)
 
-	if qt_610; then
+	if qt_610 || qt_611; then
 		DISABLED_FEATURES+=(localserver)
 	fi
 
