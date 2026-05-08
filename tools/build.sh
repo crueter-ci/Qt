@@ -161,11 +161,6 @@ configure() {
 		)
 	fi
 
-	# MSVC on ARM needs static runtime for some glorious reason.
-	if msvc && [ "$ARCH" = arm64 ]; then
-		CONFIG+=(-static-runtime)
-	fi
-
 	# UNIX builds are shared.
 	CMAKE+=(-DBUILD_SHARED_LIBS="$SHARED")
 
