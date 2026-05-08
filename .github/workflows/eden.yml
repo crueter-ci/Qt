@@ -20,6 +20,7 @@ jobs:
       release: false
       submodules: qtbase,qttools,qtcharts
       repo: Eden-CI/Qt
+      secrets: inherit
 
   qt-6-9-3:
     name: Qt 6.9.3
@@ -32,3 +33,4 @@ jobs:
       release: true
       submodules: qtbase,qttools,qtcharts
       repo: Eden-CI/Qt
+      secrets: inherit

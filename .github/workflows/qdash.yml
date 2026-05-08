@@ -29,6 +29,7 @@ jobs:
       version: 6.9.3
       release: true
       repo: QDash-CI/Qt
+      secrets: inherit
 
   # qt-6-10-2:
   #   name: Qt 6.10.2
