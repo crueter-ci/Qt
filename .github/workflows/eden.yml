@@ -19,6 +19,7 @@ jobs:
       version: 6.7.3
       release: false
       submodules: qtbase,qttools,qtcharts
+      repo: Eden-CI/Qt
 
   qt-6-9-3:
     name: Qt 6.9.3
@@ -30,3 +31,4 @@ jobs:
       version: 6.9.3
       release: true
       submodules: qtbase,qttools,qtcharts
+      repo: Eden-CI/Qt
