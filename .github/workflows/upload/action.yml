@@ -22,7 +22,7 @@ runs:
   using: composite
   steps:
     - name: Upload
-      if: inputs.release
+      if: inputs.release == 'true'
       uses: softprops/action-gh-release@v3
       with:
         tag_name: v${{ inputs.version }}
