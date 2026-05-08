@@ -7,12 +7,12 @@
 
 # default platform
 case "$(uname -s)" in
-	Linux) : "${PLATFORM:=linux}" ;;
-	Darwin) : "${PLATFORM:=macos}" ;;
-	FreeBSD) : "${PLATFORM:=freebsd}" ;;
-	OpenBSD) : "${PLATFORM:=openbsd}" ;;
-	SunOS) : "${PLATFORM:=solaris}" ;;
-	*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
+Linux) : "${PLATFORM:=linux}" ;;
+Darwin) : "${PLATFORM:=macos}" ;;
+FreeBSD) : "${PLATFORM:=freebsd}" ;;
+OpenBSD) : "${PLATFORM:=openbsd}" ;;
+SunOS) : "${PLATFORM:=solaris}" ;;
+*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
 esac
 
 # TODO: autodetect architecture
@@ -34,10 +34,13 @@ must_install() {
 must_install curl zstd cmake xz ninja unzip patch
 
 case "$ARTIFACT" in
-	*.zip) must_install unzip ;;
-	*.tar.*) ;;
-	*.7z) must_install 7z ;;
-	*) echo "-- Unsupported extension ${ARTIFACT##.*}"; exit 1 ;;
+*.zip) must_install unzip ;;
+*.tar.*) ;;
+*.7z) must_install 7z ;;
+*)
+	echo "-- Unsupported extension ${ARTIFACT##.*}"
+	exit 1
+	;;
 esac
 
 ## Utility Functions ##
@@ -64,9 +67,9 @@ extract() {
 	rm -fr "$DIRECTORY"
 
 	case "$ARTIFACT" in
-		*.zip) unzip "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-		*.tar.*) $TAR xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-		*.7z) 7z x "$ROOTDIR/$ARTIFACT" >/dev/null ;;
+	*.zip) unzip "$ROOTDIR/$ARTIFACT" >/dev/null ;;
+	*.tar.*) $TAR xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
+	*.7z) 7z x "$ROOTDIR/$ARTIFACT" >/dev/null ;;
 	esac
 
 	# qt6windows7 patch
@@ -90,21 +93,9 @@ extract() {
 	# misc in-tree patches
 	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
 
-	# current patchset doesn't apply
-	# TODO(crueter): Versioned patchsets.
-	find "$ROOTDIR"/patches -type f -name "*.patch" | while read -r patch; do
-		case "$patch" in
-			*6.7*)
-				echo "-- Applying patchset $(basename -- "$patch")"
-				patch -p1 < "$patch"
-				;;
-			*)
-				if ! qt_67; then
-					echo "-- Applying patchset $(basename -- "$patch")"
-					patch -p1 < "$patch"
-				fi
-				;;
-		esac
+	find "$ROOTDIR/patches/$VERSION" -type f -name "*.patch" | while read -r patch; do
+		echo "-- Applying patchset $(basename -- "$patch")"
+		patch -p1 <"$patch"
 	done
 
 	# lmao
@@ -120,9 +111,9 @@ sums() {
 	for file in "$@"; do
 		for algo in 1 256 512; do
 			if ! command -v sha${algo}sum >/dev/null 2>&1; then
-				sha${algo} "$file" | awk '{print $4}' | tr -d "\n" > "$file".sha${algo}sum
+				sha${algo} "$file" | awk '{print $4}' | tr -d "\n" >"$file".sha${algo}sum
 			else
-				sha${algo}sum "$file" | cut -d " " -f1 | tr -d "\n" > "$file".sha${algo}sum
+				sha${algo}sum "$file" | cut -d " " -f1 | tr -d "\n" >"$file".sha${algo}sum
 			fi
 		done
 	done
@@ -154,7 +145,7 @@ strip_libs() {
 }
 
 package() {
-    echo "-- Packaging..."
+	echo "-- Packaging..."
 
 	# strip shared libs
 	strip_libs
@@ -162,20 +153,20 @@ package() {
 	# remove superfluous fluentwinui3 stuff
 	rm -rf "$OUT_DIR"/qml/QtQuick/Controls/FluentWinUI3
 
-    mkdir -p "$ROOTDIR/artifacts"
+	mkdir -p "$ROOTDIR/artifacts"
 
 	: "${PKGNAME:=$PLATFORM}"
 
 	TARBALL="$FILENAME-$PKGNAME-$ARCH-$VERSION.tar"
 
-    cd "$OUT_DIR"
-    $TAR cf "$ROOTDIR/artifacts/$TARBALL" ./*
+	cd "$OUT_DIR"
+	$TAR cf "$ROOTDIR/artifacts/$TARBALL" ./*
 
-    cd "$ROOTDIR/artifacts"
-    zstd -10 "$TARBALL"
-    rm "$TARBALL"
+	cd "$ROOTDIR/artifacts"
+	zstd -10 "$TARBALL"
+	rm "$TARBALL"
 
-    sums "$TARBALL.zst"
+	sums "$TARBALL.zst"
 }
 
 ## Platform Stuff ##
@@ -183,13 +174,13 @@ TAR="tar"
 SHARED=false
 
 case "$PLATFORM" in
-	freebsd|openbsd|solaris)
-		TAR="gtar"
-		SHARED=true
-		;;
-	linux)
-		SHARED=true
-		;;
+freebsd | openbsd | solaris)
+	TAR="gtar"
+	SHARED=true
+	;;
+linux)
+	SHARED=true
+	;;
 esac
 
 export TAR
@@ -242,4 +233,3 @@ amd() {
 unix() {
 	linux || freebsd || openbsd || solaris
 }
-
