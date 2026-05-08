@@ -191,7 +191,7 @@ configure() {
 		sql printdialog printer printsupport
 		androiddeployqt windeployqt macdeployqt
 		designer assistant pixeltool testlib
-		qml-preview qml-profiler
+		qml-preview qml-profiler wayland-server
 	)
 
 	if qt_610; then
@@ -251,7 +251,7 @@ configure() {
 	skippable=(qtlanguageserver qtquicktimeline qtactiveqt qtquick3dphysics qtdoc qt5compat qtquick3d qtmultimedia qtdeclarative)
 	declare -a newskip
 	for i in "${skippable[@]}"; do
-		if echo "${SUB[@]}" | grep "$i" >/dev/null 2>&1; then
+		if ! echo "$SUBMODULES" | grep "$i" >/dev/null 2>&1; then
 			newskip+=("$i")
 		fi
 	done
@@ -259,7 +259,9 @@ configure() {
 	IFS=,
 	SKIP="${newskip[*]}"
 
-	CONFIG+=(-skip "$SKIP")
+	if [ -n "$SKIP" ]; then
+		CONFIG+=(-skip "$SKIP")
+	fi
 
 	#########################################
 	# Linker flags.                         #
