@@ -239,15 +239,6 @@ configure() {
 	#########################################
 	# Enabled submodules.                   #
 	#########################################
-	if [ -z "$SUBMODULES" ]; then
-		SUBMODULES=qtbase,qtdeclarative,qttools,qtcharts
-
-		case "$VERSION" in
-			6.7*) ;;
-			6.9*) SUBMODULES+=,qtmultimedia ;;
-			6.10*) SUBMODULES+=,qtmultimedia,qtgraphs,qtquick3d ;;
-		esac
-	fi
 
 	if unix; then SUBMODULES+=,qtwayland; fi
 
@@ -256,12 +247,17 @@ configure() {
 	#########################################
 	# Skipped submodules.                   #
 	#########################################
-	SKIP=qtlanguageserver,qtquicktimeline,qtactiveqt,qtquick3dphysics,qtdoc,qt5compat
-	case "$VERSION" in
-		6.7*) SKIP+=,qtquick3d,qtmultimedia ;;
-		6.9*) SKIP+=,qtquick3d ;;
-		6.10*) ;;
-	esac
+
+	skippable=(qtlanguageserver qtquicktimeline qtactiveqt qtquick3dphysics qtdoc qt5compat qtquick3d qtmultimedia qtdeclarative)
+	declare -a newskip
+	for i in "${skippable[@]}"; do
+		if echo "${SUB[@]}" | grep "$i" >/dev/null 2>&1; then
+			newskip+=("$i")
+		fi
+	done
+
+	IFS=,
+	SKIP="${newskip[*]}"
 
 	CONFIG+=(-skip "$SKIP")
 
