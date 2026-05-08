@@ -239,14 +239,17 @@ configure() {
 	#########################################
 	# Enabled submodules.                   #
 	#########################################
-	SUBMODULES=qtbase,qtdeclarative,qttools,qtcharts
-	if unix; then SUBMODULES+=,qtwayland; fi
+	if [ -z "$SUBMODULES" ]; then
+		SUBMODULES=qtbase,qtdeclarative,qttools,qtcharts
 
-	case "$VERSION" in
-		6.7*) ;;
-		6.9*) SUBMODULES+=,qtmultimedia ;;
-		6.10*) SUBMODULES+=,qtmultimedia,qtgraphs,qtquick3d ;;
-	esac
+		case "$VERSION" in
+			6.7*) ;;
+			6.9*) SUBMODULES+=,qtmultimedia ;;
+			6.10*) SUBMODULES+=,qtmultimedia,qtgraphs,qtquick3d ;;
+		esac
+	fi
+
+	if unix; then SUBMODULES+=,qtwayland; fi
 
 	CONFIG+=(-submodules "$SUBMODULES")
 

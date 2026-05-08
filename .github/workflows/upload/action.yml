@@ -1,0 +1,39 @@
+name: Upload
+description: Upload assets
+
+inputs:
+  repo:
+    description: Repository to upload to
+    required: true
+  version:
+    description: version to upload to
+    required: true
+  release:
+    description: also upload to release
+    required: true
+  artifact:
+    description: artifact name
+    required: true
+  token:
+    description: github token
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Upload
+      if: inputs.release
+      uses: softprops/action-gh-release@v3
+      with:
+        tag_name: v${{ inputs.version }}
+        name: Qt ${{ inputs.version }}
+        files: artifacts/*.tar.zst*
+        append_body: true
+        repository: ${{ inputs.repo }}
+        token: ${{ inputs.token }}
+
+    - name: Upload Artifacts
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact }}-${{ inputs.version }}
+        path: artifacts/*
