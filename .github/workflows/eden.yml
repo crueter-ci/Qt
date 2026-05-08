@@ -1,4 +1,4 @@
-name: Release
+name: Eden (Widgets)
 
 on:
   push:
@@ -17,7 +17,9 @@ jobs:
       build-linux: false
       build-macos: true
       version: 6.7.3
-      release: true
+      release: false
+      submodules: qtbase,qttools,qtcharts
+      repo: Eden-CI/Qt
 
   qt-6-9-3:
     name: Qt 6.9.3
@@ -28,14 +30,5 @@ jobs:
       build-macos: true
       version: 6.9.3
       release: true
-
-  qt-6-10-2:
-    name: Qt 6.10.2
-    uses: ./.github/workflows/platforms.yml
-    with:
-      build-windows: true
-      build-linux: true
-      build-macos: true
-      windows-runner: windows-2025-vs2026
-      version: 6.10.2
-      release: true
+      submodules: qtbase,qttools,qtcharts
+      repo: Eden-CI/Qt
