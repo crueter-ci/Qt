@@ -12,6 +12,7 @@ jobs:
   qt-6-7-3:
     name: Qt 6.7.3
     uses: ./.github/workflows/platforms.yml
+    secrets: inherit
     with:
       build-windows: false
       build-linux: false
@@ -20,11 +21,11 @@ jobs:
       release: false
       submodules: qtbase,qttools,qtcharts
       repo: Eden-CI/Qt
-      secrets: inherit
 
   qt-6-9-3:
     name: Qt 6.9.3
     uses: ./.github/workflows/platforms.yml
+    secrets: inherit
     with:
       build-windows: true
       build-linux: true
@@ -33,4 +34,3 @@ jobs:
       release: true
       submodules: qtbase,qttools,qtcharts
       repo: Eden-CI/Qt
-      secrets: inherit

@@ -22,6 +22,7 @@ jobs:
   qt-6-9-3:
     name: Qt 6.9.3
     uses: ./.github/workflows/platforms.yml
+    secrets: inherit
     with:
       build-windows: true
       build-linux: true
@@ -29,7 +30,6 @@ jobs:
       version: 6.9.3
       release: true
       repo: QDash-CI/Qt
-      secrets: inherit
 
   # qt-6-10-2:
   #   name: Qt 6.10.2
