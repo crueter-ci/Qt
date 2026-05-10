@@ -18,13 +18,13 @@ jobs:
       release: false
       submodules: qtbase
 
-  qt-6-9-3:
-    name: Qt 6.9.3
+  qt-6-11-0:
+    name: Qt 6.11.0
     uses: ./.github/workflows/platforms.yml
     with:
       build-windows: true
       build-linux: true
       build-macos: true
-      version: 6.9.3
+      version: 6.11.0
       release: false
       submodules: qtbase

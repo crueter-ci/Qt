@@ -1,0 +1,27 @@
+diff --git a/qtbase/src/corelib/global/qlogging.cpp b/qtbase/src/corelib/global/qlogging.cpp
+index aa37bd2..0d27a9e 100644
+--- a/qtbase/src/corelib/global/qlogging.cpp
++++ b/qtbase/src/corelib/global/qlogging.cpp
+@@ -1507,7 +1507,7 @@ backtraceFramesForLogMessage(int frameCount,
+     // use dladdr() instead of backtrace_symbols()
+     QString cachedLibrary;
+     const char *cachedFname = nullptr;
+-    auto decodeFrame = [&](void *addr) -> DecodedFrame {
++    auto decodeFrame = [&](const void *addr) -> DecodedFrame {
+         Dl_info info;
+         if (!dladdr(addr, &info))
+             return {};
+@@ -1538,10 +1538,11 @@ backtraceFramesForLogMessage(int frameCount,
+     // This code is protected by QMessagePattern::mutex so it is thread safe on all compilers
+     static const QRegularExpression rx(QStringLiteral("^(?:[^(]*/)?([^(/]+)\\(([^+]*)(?:[\\+[a-f0-9x]*)?\\) \\[[a-f0-9x]*\\]$"));
+ 
+-    auto decodeFrame = [&](void *&addr) -> DecodedFrame {
++    auto decodeFrame = [&](const void *addr) -> DecodedFrame {
++        void *nonConstAddr = const_cast<void *>(addr);
+         auto cleanup = [](auto *p) { free(p); };
+         auto strings =
+-            std::unique_ptr<char *, decltype(cleanup)>(backtrace_symbols(&addr, 1), cleanup);
++            std::unique_ptr<char *, decltype(cleanup)>(backtrace_symbols(&nonConstAddr, 1), cleanup);
+         QString trace = QString::fromUtf8(strings.get()[0]);
+         QRegularExpressionMatch m = rx.match(trace);
+         if (!m.hasMatch())

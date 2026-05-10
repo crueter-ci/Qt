@@ -161,11 +161,6 @@ configure() {
 		)
 	fi
 
-	# MSVC on ARM needs static runtime for some glorious reason.
-	if msvc && [ "$ARCH" = arm64 ]; then
-		CONFIG+=(-static-runtime)
-	fi
-
 	# UNIX builds are shared.
 	CMAKE+=(-DBUILD_SHARED_LIBS="$SHARED")
 
@@ -194,7 +189,7 @@ configure() {
 		qml-preview qml-profiler wayland-server
 	)
 
-	if qt_610; then
+	if qt_610 || qt_611; then
 		DISABLED_FEATURES+=(localserver)
 	fi
 

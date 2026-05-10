@@ -9,7 +9,7 @@ win7_repo="qt6windows7"
 
 case "$VERSION" in
 	# no qt6windows7 builds yet.
-	6.10.2|6.7.3) ;;
+	6.11.0|6.10.2|6.7.3) ;;
 	# Qt6Windows7 stuff
 	6.9.3)
 		win7_commit="78074b12a94b56bb2b929f243fb9351b3f9e2439"
@@ -51,4 +51,8 @@ qt_69() {
 
 qt_610() {
 	[ "$VERSION" = 6.10.2 ]
+}
+
+qt_611() {
+	[ "$VERSION" = 6.11.0 ]
 }
