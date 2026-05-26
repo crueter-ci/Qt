@@ -9,7 +9,7 @@ _download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_n
 _artifact="$_name-$PLATFORM-$ARCH-$_version.tar.zst"
 
 if [ ! -d "$_dir" ]; then
-	echo "-- Downloading $_repo..."
+	_group "Downloading $_repo"
 	echo "$_download"
 	[ -f "$_artifact" ] || curl -L "$_download" -o "$_artifact"
 	mkdir -p "$_dir"
@@ -26,6 +26,8 @@ if [ ! -d "$_dir" ]; then
 		sed "s|^prefix=\/.*$|prefix=$_dir|g" "$pc" > "$pc".tmp
 		mv "$pc".tmp "$pc"
 	done
+
+	_end
 fi
 
 export OPENSSL_DIR="$_dir"

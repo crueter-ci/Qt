@@ -52,3 +52,6 @@ tar --zstd -cf "$out" "$_newdir"
 
 echo "-- Done! Source archive is in $out"
 ls -lh "$out"
+
+echo "-- Uploading source archive..."
+gh release upload src "$out"

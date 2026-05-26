@@ -19,15 +19,15 @@ jobs:
   #     version: 6.7.3
   #     release: true
 
-  qt-6-11-0:
-    name: Qt 6.11.0
+  qt-6-11-1:
+    name: Qt 6.11.1
     uses: ./.github/workflows/platforms.yml
     secrets: inherit
     with:
       build-windows: true
       build-linux: true
       build-macos: true
-      version: 6.11.0
+      version: 6.11.1
       release: true
       repo: QDash-CI/Qt
       submodules: qtbase,qtdeclarative,qttools,qtcharts,qtmultimedia
