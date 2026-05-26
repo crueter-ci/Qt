@@ -5,7 +5,7 @@ _url="https://gitlab.freedesktop.org/mesa/drm.git"
 _name=drm
 
 if [ ! -d "$_dir" ]; then
-	echo "-- Building $_name..."
+	_group "Building $_name"
 	cd "$ROOTDIR/$BUILD_DIR"
 
 	[ -d "$_name" ] || git clone "$_url" --depth 1
@@ -18,6 +18,8 @@ if [ ! -d "$_dir" ]; then
 	ninja install
 
 	cd "$ROOTDIR"
+
+	_end
 fi
 
 export LIBDRM_DIR="$_dir"

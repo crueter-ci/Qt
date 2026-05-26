@@ -19,10 +19,6 @@ if [ "$PLATFORM" = windows ] || [ "$PLATFORM" = mingw ]; then
 	CCACHE_PATH=$(cygpath -w "$CCACHE_PATH")
 fi
 
-show_stats() {
-	"$CCACHE_PATH" -s
-}
-
 # Deps
 if [ "$PACKAGE" != "true" ]; then
 	! unix || . deps/libva.sh
@@ -38,7 +34,11 @@ fi
 
 # cmake
 configure() {
-	echo "-- Configuring $PRETTY_NAME..."
+	_group "Setting up configure flags"
+
+	## Conditionals ##
+	[[ $SUBMODULES != *multimedia* ]] || multimedia=true
+	[[ $SUBMODULES != *declarative* ]] || declarative=true
 
 	#########################################
 	# C/CXX flags.                          #
@@ -101,11 +101,13 @@ configure() {
 	#########################################
 
 	# backends
-	case "$PLATFORM" in
-		mingw|windows) ;;
-		macos) FEATURES+=(avfoundation videotoolbox) ;;
-		*) FEATURES+=(pulseaudio) ;;
-	esac
+	if [ "$multimedia" = 1 ]; then
+		case "$PLATFORM" in
+			mingw|windows) ;;
+			macos) FEATURES+=(avfoundation videotoolbox) ;;
+			*) FEATURES+=(pulseaudio) ;;
+		esac
+	fi
 
 	# FFmpeg + OpenSSL
 	if ! windows; then
@@ -182,19 +184,24 @@ configure() {
 	#########################################
 
 	DISABLED_FEATURES+=(
-		icu qml-network libresolv dladdr
+		icu libresolv dladdr wayland-server
 		sql printdialog printer printsupport
 		androiddeployqt windeployqt macdeployqt
 		designer assistant pixeltool testlib
-		qml-preview qml-profiler wayland-server
 	)
+
+	if [ "$declarative" = 1 ]; then
+		DISABLED_FEATURES+=(
+			qml-network qml-preview qml-profiler
+		)
+
+		if ! qt_67; then
+			DISABLED_FEATURES+=(quickcontrols2-fluentwinui3)
+		fi
+	fi
 
 	if qt_610 || qt_611; then
 		DISABLED_FEATURES+=(localserver)
-	fi
-
-	if ! qt_67; then
-		DISABLED_FEATURES+=(quickcontrols2-fluentwinui3)
 	fi
 
 	if mingw; then
@@ -224,6 +231,7 @@ configure() {
 	#########################################
 	# Enabled features.                     #
 	#########################################
+
 	macos || FEATURES+=(vulkan)
 	FEATURES+=(filesystemwatcher)
 
@@ -303,32 +311,34 @@ configure() {
 	## NOW CONFIGURE!                      ##
 	#########################################
 
-	echo "-- Compiler flags: $FLAGS"; echo
-	echo "-- Linker flags: $LDFLAGS"; echo
-	echo "-- Enabled features: ${FEATURES[*]}"; echo
-	echo "-- Disabled features: ${DISABLED_FEATURES[*]}"; echo
-	echo "-- Disabled flags: ${DISABLED[*]}"; echo
-	echo "-- Configure flags: ${CONFIG[*]}"; echo
-	echo "-- CMake flags: ${CMAKE[*]}"; echo
-	echo "-- Submodules: $SUBMODULES"; echo
-	echo "-- Skipping: $SKIP"; echo
+	echo "-- Compiler flags: $FLAGS"
+	echo "-- Linker flags: $LDFLAGS"
+	echo "-- Enabled features: ${FEATURES[*]}"
+	echo "-- Disabled features: ${DISABLED_FEATURES[*]}"
+	echo "-- Disabled flags: ${DISABLED[*]}"
+	echo "-- Configure flags: ${CONFIG[*]}"
+	echo "-- CMake flags: ${CMAKE[*]}"
+	echo "-- Submodules: $SUBMODULES"
+	echo "-- Skipping: $SKIP"
 
+	_end
+
+	_group "Configuring $PRETTY_NAME"
 	./configure "${CONFIG[@]}" -- "${CMAKE[@]}"
+	_end
 }
 
 build() {
-    echo "-- Building $PRETTY_NAME..."
-    cmake --build . --parallel || { show_stats; exit 1; }
-	show_stats
+    _group "Building $PRETTY_NAME"
+    cmake --build . --parallel
 }
 
 ## Packaging ##
 copy_build_artifacts() {
+    _group "Copying artifacts"
+
 	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-    echo "-- Copying artifacts..."
-
 	cmake --install . --prefix "$OUT_DIR"
-
     rm -rf "$OUT_DIR"/doc
 
 	# TODO(crueter): See if some unnecessary executables can be cleaned out. They take up >half of the
@@ -340,6 +350,8 @@ copy_build_artifacts() {
 	if ! unix; then
 		rm -f "$OUT_DIR"/bin/*dbus*
 	fi
+
+	_end
 }
 
 ## Cleanup ##

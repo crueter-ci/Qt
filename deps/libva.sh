@@ -5,7 +5,8 @@ _url="https://github.com/intel/libva.git"
 _name=libva
 
 if [ ! -d "$_dir" ]; then
-	echo "-- Building $_name..."
+	_group "Building $_name."
+
 	cd "$ROOTDIR/$BUILD_DIR"
 
 	[ -d "$_name" ] || git clone "$_url" --depth 1
@@ -18,6 +19,8 @@ if [ ! -d "$_dir" ]; then
 	make install
 
 	cd "$ROOTDIR"
+
+	_end
 fi
 
 export LIBVA_DIR="$_dir"

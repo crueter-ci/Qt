@@ -11,10 +11,9 @@ _url="https://sdk.lunarg.com/sdk/download/$_ver/windows/$_exe"
 _root_unix=$(cygpath -u "$_root")
 
 # Check if Vulkan SDK is already installed
-if [ -d "$_root_unix" ]; then
-    echo "-- Vulkan SDK already installed at $_root"
-else
-    echo "-- Downloading Vulkan SDK $_ver from $_url"
+if [ ! -d "$_root_unix" ]; then
+    _group "Downloading Vulkan SDK $_ver"
+	echo "-- URL: $_url"
     [ ! -f "./$_exe" ] && curl -L -o "./$_exe" "$_url"
     chmod +x "./$_exe"
 
@@ -26,7 +25,9 @@ else
         exit 1
     fi
 
-    echo "-- Finished installing Vulkan SDK $_ver"
+    echo "-- Done"
+
+	_end
 fi
 
 export VULKAN_SDK="$_root"
