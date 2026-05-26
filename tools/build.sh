@@ -112,6 +112,7 @@ configure() {
 	# FFmpeg + OpenSSL
 	if ! windows; then
 		! qt_67 || FEATURES+=(ffmpeg thread)
+		DISABLED_FEATURES+=(gstreamer)
 
 		CONFIG+=(-openssl-linked)
 		CMAKE+=(
