@@ -311,6 +311,8 @@ configure() {
 	## NOW CONFIGURE!                      ##
 	#########################################
 
+	IFS=" "
+
 	echo "-- Compiler flags: $FLAGS"
 	echo "-- Linker flags: $LDFLAGS"
 	echo "-- Enabled features: ${FEATURES[*]}"
