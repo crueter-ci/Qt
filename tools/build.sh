@@ -146,8 +146,10 @@ configure() {
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
 	elif macos; then
 		FEATURES+=(securetransport)
+		DISABLED_FEATURES+=(openssl)
 	elif windows; then
 		FEATURES+=(schannel)
+		DISABLED_FEATURES+=(openssl)
 	fi
 
 	#########################################
@@ -384,13 +386,13 @@ copy_build_artifacts() {
 }
 
 ## Cleanup ##
-rm -rf "$BUILD_DIR" # "$OUT_DIR"
+# rm -rf "$BUILD_DIR" # "$OUT_DIR"
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
-download
+# download
 cd "$ROOTDIR/$BUILD_DIR"
-extract
+# extract
 
 rm -f CMakeCache.txt
 
