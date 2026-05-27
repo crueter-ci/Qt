@@ -105,14 +105,18 @@ configure() {
 		case "$PLATFORM" in
 			mingw|windows) ;;
 			macos) FEATURES+=(avfoundation videotoolbox) ;;
-			*) FEATURES+=(pulseaudio) ;;
+			*)
+				FEATURES+=(pulseaudio)
+				DISABLED_FEATURES+=(gstreamer)
+				;;
 		esac
 	fi
 
 	# FFmpeg + OpenSSL
 	if ! windows; then
-		! qt_67 || FEATURES+=(ffmpeg thread)
-		DISABLED_FEATURES+=(gstreamer)
+		if [ "$multimedia" = 1 ]; then
+			FEATURES+=(ffmpeg thread)
+		fi
 
 		CONFIG+=(-openssl-linked)
 		CMAKE+=(
