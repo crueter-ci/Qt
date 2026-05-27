@@ -68,7 +68,7 @@ jobs:
         shell: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install zstd
         if: matrix.platform == 'windows'
@@ -77,13 +77,13 @@ jobs:
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@main
         with:
-          key: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}
-          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}
+          key: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}-${{ inputs.repo }}
+          restore-keys: ${{ matrix.platform }}-${{ matrix.os.arch }}-${{ inputs.version }}-${{ inputs.repo }}
           install: binary
           max-size: 2G
 
       - name: Setup MSVC
-        uses: ilammy/msvc-dev-cmd@v1
+        uses: Eden-CI/msvc-dev-cmd@master
         if: matrix.platform == 'windows'
         with:
           arch: ${{ matrix.os.arch }}
@@ -155,13 +155,13 @@ jobs:
       PKGNAME: archlinux
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@main
         with:
-          key: archlinux-${{ env.ARCH }}-${{ inputs.version }}
-          restore-keys: archlinux-${{ env.ARCH }}-${{ inputs.version }}
+          key: archlinux-${{ env.ARCH }}-${{ inputs.version }}-${{ inputs.repo }}
+          restore-keys: archlinux-${{ env.ARCH }}-${{ inputs.version }}-${{ inputs.repo }}
           max-size: 2G
           update-package-index: true
           install: binary
@@ -200,13 +200,13 @@ jobs:
       PLATFORM: linux
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@main
         with:
-          key: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
-          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}-${{ inputs.repo }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}-${{ inputs.repo }}
           max-size: 2G
           install: binary
 
@@ -237,15 +237,15 @@ jobs:
       ARCH: universal
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           submodules: recursive
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@main
         with:
-          key: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
-          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}
+          key: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}-${{ inputs.repo }}
+          restore-keys: ${{ env.PLATFORM }}-${{ env.ARCH }}-${{ inputs.version }}-${{ inputs.repo }}
           install: binary
           max-size: 2G
 
@@ -276,7 +276,7 @@ jobs:
     if: always() && inputs.release && !cancelled() && !failure()
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
@@ -303,7 +303,7 @@ jobs:
     if: always() && !inputs.release && !cancelled() && !failure()
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
