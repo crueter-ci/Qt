@@ -104,7 +104,7 @@ configure() {
 	#########################################
 
 	# backends
-	if [ "$multimedia" = 1 ]; then
+	if [ "$multimedia" = true ]; then
 		case "$PLATFORM" in
 			mingw|windows) ;;
 			macos) FEATURES+=(avfoundation videotoolbox) ;;
@@ -118,7 +118,7 @@ configure() {
 	# FFmpeg (Linux/macOS only)
 	# Windows uses wmf/wasapi
 	if linux || macos; then
-		if [ "$multimedia" = 1 ]; then
+		if [ "$multimedia" = true ]; then
 			FEATURES+=(ffmpeg thread)
 		fi
 
@@ -188,7 +188,7 @@ configure() {
 
 	# MSVC on ARM needs static runtime for some glorious reason.
 	# TODO(crueter): Cause seems to be LLVM--possible to disable?
-	if msvc && [ "$ARCH" = arm64 ] && [ "$declarative" = 1 ]; then
+	if msvc && [ "$ARCH" = arm64 ] && [ "$declarative" = true ]; then
 		CONFIG+=(-static-runtime)
 	fi
 
@@ -219,7 +219,7 @@ configure() {
 		designer assistant pixeltool testlib
 	)
 
-	if [ "$declarative" = 1 ]; then
+	if [ "$declarative" = true ]; then
 		DISABLED_FEATURES+=(
 			qml-network qml-preview qml-profiler
 		)
@@ -390,9 +390,9 @@ copy_build_artifacts() {
 mkdir -p "$BUILD_DIR" "$OUT_DIR"
 
 ## Download + Extract ##
-# download
+download
 cd "$ROOTDIR/$BUILD_DIR"
-# extract
+extract
 
 rm -f CMakeCache.txt
 
