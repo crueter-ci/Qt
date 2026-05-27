@@ -27,8 +27,11 @@ fi
 
 ! msvc || . deps/vulkan.sh
 
-if ! windows; then
+if linux || macos; then
 	. deps/ffmpeg.sh
+fi
+
+if linux; then
 	. deps/openssl.sh
 fi
 
@@ -112,26 +115,39 @@ configure() {
 		esac
 	fi
 
-	# FFmpeg + OpenSSL
-	if ! windows; then
+	# FFmpeg (Linux/macOS only)
+	# Windows uses wmf/wasapi
+	if linux || macos; then
 		if [ "$multimedia" = 1 ]; then
 			FEATURES+=(ffmpeg thread)
 		fi
 
+		CMAKE+=(
+			-DFFMPEG_DIR="$FFMPEG_DIR"
+			-DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
+		)
+
+		echo "-- * FFmpeg dir: $FFMPEG_DIR"
+	fi
+
+	# OpenSSL (Linux only)
+	# Windows uses schannel, macOS uses secureTransport
+	if linux; then
 		CONFIG+=(-openssl-linked)
 		CMAKE+=(
 			-DOPENSSL_USE_STATIC_LIBS=ON
-			-DFFMPEG_DIR="$FFMPEG_DIR"
 			-DOPENSSL_ROOT_DIR="$OPENSSL_DIR"
-			-DCMAKE_FIND_LIBRARY_SUFFIXES=".a"
 			-DCMAKE_PREFIX_PATH="$OPENSSL_DIR"
 			-DOpenSSL_ROOT="$OPENSSL_DIR"
 		)
 
 		export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
-		echo "-- * FFmpeg dir: $FFMPEG_DIR"
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
+	elif macos; then
+		FEATURES+=(securetransport)
+	elif windows; then
+		FEATURES+=(schannel)
 	fi
 
 	#########################################
@@ -166,6 +182,12 @@ configure() {
 			-DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}"
 			-DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
 		)
+	fi
+
+	# MSVC on ARM needs static runtime for some glorious reason.
+	# TODO(crueter): Cause seems to be LLVM--possible to disable?
+	if msvc && [ "$ARCH" = arm64 ] && [ "$declarative" = 1 ]; then
+		CONFIG+=(-static-runtime)
 	fi
 
 	# UNIX builds are shared.
