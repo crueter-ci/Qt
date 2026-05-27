@@ -1,0 +1,24 @@
+From 19f5b7d8965d5f515b28930b78644e847d259668 Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Tue, 26 May 2026 23:05:52 -0400
+Subject: [PATCH] Fix Linguist Qt Network linkage
+
+---
+ qttools/src/linguist/linguist/CMakeLists.txt | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/qttools/src/linguist/linguist/CMakeLists.txt b/qttools/src/linguist/linguist/CMakeLists.txt
+index e21861c0..5d052e9a 100644
+--- a/qttools/src/linguist/linguist/CMakeLists.txt
++++ b/qttools/src/linguist/linguist/CMakeLists.txt
+@@ -81,6 +81,7 @@ qt_internal_add_app(linguist
+         Qt::Widgets
+         Qt::QuickWidgets
+         Qt::QuickLayouts
++        Qt::Network
+ )
+ 
+ qt_internal_extend_target(linguist CONDITION QT_FEATURE_process
+-- 
+2.54.0
+
