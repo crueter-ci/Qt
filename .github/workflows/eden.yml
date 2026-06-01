@@ -18,7 +18,7 @@ jobs:
       build-linux: false
       build-macos: true
       version: 6.7.3
-      release: false
+      release: true
       submodules: qtbase,qttools,qtcharts
       repo: Eden-CI/Qt
 
