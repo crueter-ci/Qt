@@ -259,5 +259,5 @@ amd() {
 # get me a unix with no macOS
 # "UNIX with no macOS? Ay Tony, get me a pizza with nuthin'!"
 unix() {
-	linux || freebsd || openbsd || solaris
+	linux
 }

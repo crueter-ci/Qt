@@ -419,6 +419,11 @@ extract
 
 rm -f CMakeCache.txt
 
+## cross comp host build ##
+if [ "$CROSS" = true ]; then
+	build_host
+fi
+
 ## Configure ##
 cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
 configure
