@@ -374,17 +374,23 @@ configure() {
 build() {
     _group "Building $PRETTY_NAME"
     cmake --build . --parallel
+	_end
 }
 
 # minimal host qt
 build_host() {
-	export QT_HOST_PATH="$ROOTDIR/$BUILD_DIR/host"
-	mkdir -p "$QT_HOST_PATH"
+	_group "Building host Qt"
+	host="$ROOTDIR/$BUILD_DIR/host"
+	mkdir -p "$host"
 
-	pushd "$QT_HOST_PATH"
+	pushd "$host"
 	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests
 	cmake --build . --target host_tools
 	popd
+
+	export QT_HOST_PATH="$host"
+
+	_end
 }
 
 ## Packaging ##
