@@ -213,10 +213,14 @@ freebsd | openbsd | solaris)
 linux)
 	SHARED=true
 	;;
+ios)
+	CROSS=true
+	;;
 esac
 
 export TAR
 export SHARED
+export CROSS
 
 ## Platform Utility Functions ##
 
@@ -226,6 +230,10 @@ linux() {
 
 macos() {
 	[ "$PLATFORM" = macos ]
+}
+
+ios() {
+	[ "$PLATFORM" = ios ]
 }
 
 msvc() {
@@ -238,18 +246,6 @@ mingw() {
 
 windows() {
 	msvc || mingw
-}
-
-openbsd() {
-	[ "$PLATFORM" = openbsd ]
-}
-
-freebsd() {
-	[ "$PLATFORM" = freebsd ]
-}
-
-solaris() {
-	[ "$PLATFORM" = solaris ]
 }
 
 arm() {

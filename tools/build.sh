@@ -35,6 +35,10 @@ if linux; then
 	. deps/openssl.sh
 fi
 
+if ios; then
+	cross_comp=true
+fi
+
 # cmake
 configure() {
 	_group "Setting up configure flags"
@@ -197,6 +201,14 @@ configure() {
 
 	# also, gc-binaries can't be done on shared
 	[ "$SHARED" = true ] || CONFIG+=(-gc-binaries)
+
+	# Cross comp builds need a specific target and host path.
+	if [ "$CROSS" = true ]; then
+		CONFIG+=(-qt-host-path "$QT_HOST_PATH")
+		case "$PLATFORM" in
+			ios) CONFIG+=(-platform macx-ios-clang)
+		esac
+	fi
 
 	#########################################
 	# Options passed directly to configure. #
@@ -362,6 +374,17 @@ configure() {
 build() {
     _group "Building $PRETTY_NAME"
     cmake --build . --parallel
+}
+
+# minimal host qt
+build_host() {
+	export QT_HOST_PATH="$ROOTDIR/$BUILD_DIR/host"
+	mkdir -p "$QT_HOST_PATH"
+
+	pushd "$QT_HOST_PATH"
+	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests
+	cmake --build . --target host_tools
+	popd
 }
 
 ## Packaging ##
