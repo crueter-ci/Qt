@@ -384,7 +384,7 @@ build_host() {
 	mkdir -p "$host"
 
 	pushd "$host"
-	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests -skip qtdoc -no-feature-doc-snippets
+	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests -skip qtdoc -no-feature-doc_snippets
 	cmake --build . --target host_tools
 	popd
 
