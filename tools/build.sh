@@ -35,10 +35,6 @@ if linux; then
 	. deps/openssl.sh
 fi
 
-if ios; then
-	cross_comp=true
-fi
-
 # get submodules to skip
 skip_submodules() {
 	#########################################
@@ -227,6 +223,7 @@ configure() {
 	# Cross comp builds need a specific target and host path.
 	if [ "$CROSS" = true ]; then
 		CONFIG+=(-qt-host-path "$QT_HOST_PATH")
+		CMAKE+=(-DQT_HOST_PATH_CMAKE_DIR="$QT_HOST_PATH"/lib/cmake)
 		case "$PLATFORM" in
 			ios) CONFIG+=(-platform macx-ios-clang)
 		esac
