@@ -92,7 +92,7 @@ configure() {
 	# PIC/PIE handling
 	case "$PLATFORM" in
 		openbsd|linux) FLAGS="$FLAGS -fPIC" ;;
-		freebsd|macos|mingw) FLAGS="$FLAGS -fno-pie" ;;
+		freebsd|macos|ios|mingw) FLAGS="$FLAGS -fno-pie" ;;
 		*) ;;
 	esac
 
@@ -102,6 +102,7 @@ configure() {
 	case "$PLATFORM" in
 		mingw|windows) dqpa=windows ;;
 		macos) dqpa=cocoa ;;
+		ios) dqpa=ios ;;
 		linux) dqpa=xcb
 			CONFIG+=(
 				-xcb
@@ -130,7 +131,8 @@ configure() {
 	# backends
 	if [ "$multimedia" = true ]; then
 		case "$PLATFORM" in
-			mingw|windows) ;;
+			# TODO(crueter): Figure out iOS FFmpeg situation
+			mingw|windows|ios) ;;
 			macos) FEATURES+=(avfoundation videotoolbox) ;;
 			*)
 				FEATURES+=(pulseaudio)
@@ -168,7 +170,7 @@ configure() {
 		export PKG_CONFIG_PATH="$OPENSSL_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 
 		echo "-- * OpenSSL dir: $OPENSSL_DIR"
-	elif macos; then
+	elif macos || ios; then
 		FEATURES+=(securetransport)
 		DISABLED_FEATURES+=(openssl)
 	elif windows; then
@@ -320,7 +322,7 @@ configure() {
 	# all of these are just garbage collection basically, also identical code folding
 	case "$PLATFORM" in
 		windows) LDFLAGS+="/OPT:REF /OPT:ICF" ;;
-		macos) LDFLAGS+="-Wl,-dead_strip -Wl,-dead_strip" ;;
+		macos|ios) LDFLAGS+="-Wl,-dead_strip -Wl,-dead_strip" ;;
 		*) LDFLAGS+="-Wl,--gc-sections" ;;
 	esac
 
@@ -385,23 +387,38 @@ build() {
 
 # minimal host qt
 build_host() {
-	_group "Building host Qt"
+	_group "Configuring host Qt"
 	host="$ROOTDIR/$BUILD_DIR/host"
 	mkdir -p "$host"
 
 	pushd "$host"
 
+	## SUBMODULES ##
 	skip_submodules
 	config=(-submodules "$SUBMODULES")
 	if [ -n "$SKIP" ]; then
 		config+=(-skip "$SKIP")
 	fi
 
-	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests -skip qtdoc -no-feature-doc_snippets "${config[@]}"
-	cmake --build . --target host_tools
-	popd
+	## CCACHE ##
+	if [ "${CCACHE:-true}" = true ]; then
+		echo "-- Using ccache at: $CCACHE_PATH"
 
+		cmake+=(
+			-DCMAKE_CXX_COMPILER_LAUNCHER="${CCACHE_PATH}"
+			-DCMAKE_C_COMPILER_LAUNCHER="${CCACHE_PATH}"
+		)
+	fi
+
+	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests -skip qtdoc \
+		-no-feature-doc_snippets "${config[@]}" -- "${cmake[@]}"
+	_end
+
+	_group "Building host Qt"
+
+	cmake --build . --target host_tools
 	export QT_HOST_PATH="$host"
+	popd
 
 	_end
 }
