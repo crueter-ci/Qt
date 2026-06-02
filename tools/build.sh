@@ -386,6 +386,7 @@ build() {
 build_host() {
 	_group "Configuring host Qt"
 	host="$ROOTDIR/$BUILD_DIR/host"
+	ins="$ROOTDIR/$BUILD_DIR/host-install"
 	mkdir -p "$host"
 
 	pushd "$host"
@@ -414,7 +415,8 @@ build_host() {
 	_group "Building host Qt"
 
 	cmake --build . --target host_tools
-	export QT_HOST_PATH="$host"
+	cmake --install . --prefix "$ins"
+	export QT_HOST_PATH="$ins"
 	popd
 
 	_end
