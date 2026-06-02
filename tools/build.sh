@@ -39,6 +39,26 @@ if ios; then
 	cross_comp=true
 fi
 
+# get submodules to skip
+skip_submodules() {
+	#########################################
+	# Skipped submodules.                   #
+	#########################################
+
+	skippable=(qtlanguageserver qtquicktimeline qtactiveqt qtquick3dphysics qtdoc qt5compat qtquick3d qtmultimedia qtdeclarative)
+	declare -a newskip
+	for i in "${skippable[@]}"; do
+		if ! echo "$SUBMODULES" | grep "$i" >/dev/null 2>&1; then
+			newskip+=("$i")
+		fi
+	done
+
+	IFS=,
+	SKIP="${newskip[*]}"
+	export SKIP
+	IFS=" "
+}
+
 # cmake
 configure() {
 	_group "Setting up configure flags"
@@ -288,21 +308,7 @@ configure() {
 
 	CONFIG+=(-submodules "$SUBMODULES")
 
-	#########################################
-	# Skipped submodules.                   #
-	#########################################
-
-	skippable=(qtlanguageserver qtquicktimeline qtactiveqt qtquick3dphysics qtdoc qt5compat qtquick3d qtmultimedia qtdeclarative)
-	declare -a newskip
-	for i in "${skippable[@]}"; do
-		if ! echo "$SUBMODULES" | grep "$i" >/dev/null 2>&1; then
-			newskip+=("$i")
-		fi
-	done
-
-	IFS=,
-	SKIP="${newskip[*]}"
-
+	skip_submodules
 	if [ -n "$SKIP" ]; then
 		CONFIG+=(-skip "$SKIP")
 	fi
@@ -384,7 +390,14 @@ build_host() {
 	mkdir -p "$host"
 
 	pushd "$host"
-	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests -skip qtdoc -no-feature-doc_snippets
+
+	skip_submodules
+	config=(-submodules "$SUBMODULES")
+	if [ -n "$SKIP" ]; then
+		config+=(-skip "$SKIP")
+	fi
+
+	"$ROOTDIR/$BUILD_DIR/$DIRECTORY"/configure -developer-build -nomake tests -skip qtdoc -no-feature-doc_snippets "${config[@]}"
 	cmake --build . --target host_tools
 	popd
 
