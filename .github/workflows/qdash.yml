@@ -30,7 +30,7 @@ jobs:
       version: 6.11.1
       release: true
       repo: QDash-CI/Qt
-      submodules: qtbase,qtdeclarative,qttools,qtcharts,qtmultimedia
+      submodules: qtbase,qtdeclarative,qtmultimedia
 
   # qt-6-10-2:
   #   name: Qt 6.10.2
