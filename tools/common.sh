@@ -53,7 +53,7 @@ esac
 ROOTDIR="$PWD"
 : "${OUT_DIR:=$PWD/out}"
 : "${BUILD_DIR:=$PWD/build}"
-: "${MACOSX_DEPLOYMENT_TARGET:=26.0}"
+: "${MACOSX_DEPLOYMENT_TARGET:=13.0}"
 
 mkdir -p "$ROOTDIR"/artifacts "$BUILD_DIR"
 

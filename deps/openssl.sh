@@ -12,7 +12,7 @@ else
 	_arch="$ARCH"
 fi
 
-_dir="$ROOTDIR/$_name-$PLATFORM-$_arch-$_version"
+_dir="$_name-$PLATFORM-$_arch-$_version"
 _artifact="$_dir.tar.zst"
 
 _download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_artifact"
