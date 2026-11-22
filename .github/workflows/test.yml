@@ -5,26 +5,22 @@ on:
     branches: [ "master" ]
   workflow_dispatch:
 
+permissions:
+  contents: write
 
 jobs:
-  qt-6-7-3:
-    name: Qt 6.7.3
-    uses: ./.github/workflows/platforms.yml
+  build:
+    name: Build
+    uses: ./.github/workflows/build.yml
     with:
-      build-windows: false
-      build-linux: false
-      build-macos: true
-      version: 6.7.3
-      release: false
-      submodules: qtbase
-
-  qt-6-11-1:
-    name: Qt 6.11.0
-    uses: ./.github/workflows/platforms.yml
-    with:
-      build-windows: true
-      build-linux: true
-      build-macos: true
-      version: 6.11.1
-      release: false
+      version: 6.11.3
       submodules: qtbase,qttools
+
+  release:
+    needs: build
+    uses: ./.github/workflows/release.yml
+    secrets: inherit
+    with:
+      version: 6.11.3
+      release: false
+      repo: crueter-ci/Qt

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # shellcheck disable=SC1091
 
@@ -8,24 +8,25 @@ set -e
 
 ## Buildtime/Input Variables ##
 
+if [ "$PLATFORM" = archlinux ]; then
+	PLATFORM=linux
+fi
+
 : "${ARCH:=amd64}"
-: "${BUILD_DIR:=build}"
-mkdir -p "$BUILD_DIR"
 
-## Build Functions ##
+if [ -z "$CCACHE_PATH" ]; then
+	CCACHE_PATH=$(which ccache || echo "ccache")
+fi
 
-CCACHE_PATH=$(which ccache || echo "ccache")
 if [ "$PLATFORM" = windows ] || [ "$PLATFORM" = mingw ]; then
 	CCACHE_PATH=$(cygpath -w "$CCACHE_PATH")
 fi
 
 # Deps
-if [ "$PACKAGE" != "true" ]; then
-	! unix || . deps/libva.sh
-	! linux || . deps/libdrm.sh
+if [ "$PACKAGE" != "true" ] && linux; then
+	. deps/libva.sh
+	. deps/libdrm.sh
 fi
-
-! msvc || . deps/vulkan.sh
 
 if linux || macos; then
 	. deps/ffmpeg.sh
@@ -34,6 +35,9 @@ fi
 if linux; then
 	. deps/openssl.sh
 fi
+
+## Configure ##
+cd "$DIRECTORY"
 
 # cmake
 configure() {
@@ -62,13 +66,13 @@ configure() {
 			set -- "$@" -DQT_BUILD_QDOC=OFF
 			;;
 		mingw) ;;
-		*) FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables" ;;
+		*) FLAGS="$FLAGS -fomit-frame-pointer -fno-unwind-tables -fpermissive" ;;
 	esac
 
 	# PIC/PIE handling
 	case "$PLATFORM" in
-		openbsd|linux) FLAGS="$FLAGS -fPIC" ;;
-		freebsd|macos|mingw) FLAGS="$FLAGS -fno-pie" ;;
+		*linux) FLAGS="$FLAGS -fPIC" ;;
+		macos|mingw) FLAGS="$FLAGS -fno-pie" ;;
 		*) ;;
 	esac
 
@@ -78,7 +82,7 @@ configure() {
 	case "$PLATFORM" in
 		mingw|windows) dqpa=windows ;;
 		macos) dqpa=cocoa ;;
-		linux) dqpa=xcb
+		*linux) dqpa=xcb
 			CONFIG+=(
 				-xcb
 				-qpa "xcb;wayland"
@@ -93,11 +97,7 @@ configure() {
 			;;
 	esac
 
-	if qt_67; then
-		CONFIG+=(-qpa "$dqpa")
-	else
-		CONFIG+=(-default-qpa "$dqpa")
-	fi
+	CONFIG+=(-default-qpa "$dqpa")
 
 	#########################################
 	# Multimedia Handling.                  #
@@ -157,7 +157,7 @@ configure() {
 	#########################################
 
 	# libva
-	if unix; then
+	if linux; then
 		export PKG_CONFIG_PATH="$LIBVA_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * libva pkg-config: "
 		pkg-config --cflags --libs libva
@@ -167,10 +167,8 @@ configure() {
 		# force libva custom dir into the thing
 		FLAGS="$FLAGS $(pkg-config --cflags --libs libva-drm) "
 		LDFLAGS="$LDFLAGS $(pkg-config --cflags --libs libva-drm) "
-	fi
 
-	# libdrm
-	if linux; then
+		# libdrm
 		export PKG_CONFIG_PATH="$LIBDRM_DIR/lib/pkgconfig:$PKG_CONFIG_PATH"
 		printf -- "-- * libdrm pkg-config: "
 		pkg-config --cflags --libs libdrm
@@ -188,9 +186,9 @@ configure() {
 
 	# MSVC on ARM needs static runtime for some glorious reason.
 	# TODO(crueter): Cause seems to be LLVM--possible to disable?
-	if msvc && [ "$ARCH" = arm64 ] && [ "$declarative" = true ]; then
-		CONFIG+=(-static-runtime)
-	fi
+	# if msvc && [ "$ARCH" = arm64 ] && [ "$declarative" = true ]; then
+	# 	CONFIG+=(-static-runtime)
+	# fi
 
 	# UNIX builds are shared.
 	CMAKE+=(-DBUILD_SHARED_LIBS="$SHARED")
@@ -221,17 +219,11 @@ configure() {
 
 	if [ "$declarative" = true ]; then
 		DISABLED_FEATURES+=(
-			qml-network qml-preview qml-profiler
+			qml-network qml-preview qml-profiler quickcontrols2-fluentwinui3
 		)
-
-		if ! qt_67; then
-			DISABLED_FEATURES+=(quickcontrols2-fluentwinui3)
-		fi
 	fi
 
-	if qt_610 || qt_611; then
-		DISABLED_FEATURES+=(localserver)
-	fi
+	DISABLED_FEATURES+=(localserver)
 
 	if mingw; then
 		DISABLED_FEATURES+=(
@@ -272,7 +264,9 @@ configure() {
 	# Enabled submodules.                   #
 	#########################################
 
-	if unix; then SUBMODULES+=,qtwayland; fi
+	if linux; then
+		SUBMODULES+=,qtwayland
+	fi
 
 	CONFIG+=(-submodules "$SUBMODULES")
 
@@ -316,10 +310,6 @@ configure() {
 		-DCMAKE_EXE_LINKER_FLAGS="$LDFLAGS"
 	)
 
-	if qt_69; then
-		CMAKE+=(-DQT_FEATURE_cpp_winrt=OFF)
-	fi
-
 	# package target (arch linux)
 	if [ "$PACKAGE" = true ]; then
 		CMAKE+=(
@@ -359,52 +349,4 @@ configure() {
 	_end
 }
 
-build() {
-    _group "Building $PRETTY_NAME"
-    cmake --build . --parallel
-}
-
-## Packaging ##
-copy_build_artifacts() {
-    _group "Copying artifacts"
-
-	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-	cmake --install . --prefix "$OUT_DIR"
-    rm -rf "$OUT_DIR"/doc
-
-	# TODO(crueter): See if some unnecessary executables can be cleaned out. They take up >half of the
-	# space on MinGW and Windows.
-
-	# TODO(crueter): Some of the stuff like qtdiag, qmljsrootgen, qml.exe seem unnecessary.
-	# Run some tests to confirm.
-
-	if ! unix; then
-		rm -f "$OUT_DIR"/bin/*dbus*
-	fi
-
-	_end
-}
-
-## Cleanup ##
-# rm -rf "$BUILD_DIR" # "$OUT_DIR"
-mkdir -p "$BUILD_DIR" "$OUT_DIR"
-
-## Download + Extract ##
-download
-cd "$ROOTDIR/$BUILD_DIR"
-extract
-
-rm -f CMakeCache.txt
-
-## Configure ##
-cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
 configure
-
-## Build ##
-build
-copy_build_artifacts
-
-## Package ##
-package
-
-echo "-- Done! Artifacts are in $ROOTDIR/artifacts, raw lib/include data is in $OUT_DIR"

@@ -1,0 +1,27 @@
+#!/bin/bash
+# shellcheck disable=SC1091
+
+set -e
+
+. tools/common.sh
+
+## Apply patches ##
+
+_group "Applying patches to $PRETTY_NAME $VERSION"
+
+# misc in-tree patches
+cd "$ROOTDIR/$DIRECTORY"
+
+find "$ROOTDIR/patches/$VERSION" -type f -name "*.patch" | while read -r patch; do
+	echo "-- Applying patchset $(basename -- "$patch")"
+	patch -p1 <"$patch"
+done
+
+# lmao
+# -i isn't POSIX compliant but MinGW environments are strictly GNU so it's fine.
+if mingw && arm; then
+	cd "$ROOTDIR"
+	sed -i '10i #include <arm_acle.h>' "$DIRECTORY"/qtbase/src/corelib/thread/qyieldcpu.h
+fi
+
+_end

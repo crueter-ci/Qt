@@ -8,3 +8,7 @@ build
 /libdrm
 /libva
 /vulkansdk*
+.vscode
+TIMESTAMP
+VERSION
+/drm

@@ -6,7 +6,7 @@
 . ./tools/vars.sh
 
 _group() {
-    if [ -n "$GITHUB_RUN_ID" ]; then
+	if [ -n "$GITHUB_RUN_ID" ]; then
 		echo "##[group]$*"
 	else
 		echo "======= $* ======="
@@ -19,23 +19,43 @@ _end() {
 	fi
 }
 
-# default platform
+# default platform + architecture (auto-detected unless already supplied)
 case "$(uname -s)" in
-Linux) : "${PLATFORM:=linux}" ;;
-Darwin) : "${PLATFORM:=macos}" ;;
-FreeBSD) : "${PLATFORM:=freebsd}" ;;
-OpenBSD) : "${PLATFORM:=openbsd}" ;;
-SunOS) : "${PLATFORM:=solaris}" ;;
-*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
+	Linux)
+		: "${PLATFORM:=linux}"
+		case "$(uname -m)" in
+			x86_64)    : "${ARCH:=amd64}" ;;
+			aarch64|arm64) : "${ARCH:=aarch64}" ;;
+		esac
+		;;
+	Darwin)
+		: "${PLATFORM:=macos}"
+		case "$(uname -m)" in
+			x86_64) : "${ARCH:=amd64}" ;;
+			arm64)  : "${ARCH:=aarch64}" ;;
+		esac
+		;;
+	CYGWIN* | MINGW* | MSYS*)
+		# MSYS2 sets MYSTEM; regular setups are windows/msvc (windows is case-insensitive)
+		if [ -n "$MYSTEM" ]; then
+			: "${PLATFORM:=mingw}"
+		else
+			: "${PLATFORM:=windows}"
+		fi
+		case "$(uname)" in
+			*ARM64) : "${ARCH:=aarch64}" ;;
+			*)      : "${ARCH:=amd64}" ;;
+		esac
+		;;
+	*) : "${PLATFORM:?-- You must supply the PLATFORM environment variable.}" ;;
 esac
 
-# TODO: autodetect architecture
-# but make android manual specification
 ROOTDIR="$PWD"
 : "${OUT_DIR:=$PWD/out}"
-: "${MACOSX_DEPLOYMENT_TARGET:=13.0}"
+: "${BUILD_DIR:=$PWD/build}"
+: "${MACOSX_DEPLOYMENT_TARGET:=26.0}"
 
-mkdir -p "$ROOTDIR"/artifacts
+mkdir -p "$ROOTDIR"/artifacts "$BUILD_DIR"
 
 ## Command Checks ##
 
@@ -45,96 +65,17 @@ must_install() {
 	done
 }
 
-must_install curl zstd cmake xz ninja unzip patch
-
 case "$ARTIFACT" in
-*.zip) must_install unzip ;;
-*.tar.*) ;;
-*.7z) must_install 7z ;;
-*)
-	echo "-- Unsupported extension ${ARTIFACT##.*}"
-	exit 1
-	;;
+	*.zip) must_install unzip ;;
+	*.tar.*) ;;
+	*.7z) must_install 7z ;;
+	*)
+		echo "-- Unsupported extension ${ARTIFACT##.*}"
+		exit 1
+		;;
 esac
 
 ## Utility Functions ##
-
-# download
-download() {
-	_group "Downloading $PRETTY_NAME $VERSION"
-
-	echo "-- URL: $DOWNLOAD_URL"
-
-	TRIES=0
-	if [ -f "$ARTIFACT" ]; then
-		echo "-- Already downloaded, skipping"
-		_end
-		return
-	fi
-
-	while [ "$TRIES" -le 30 ]; do
-		if curl -L "$DOWNLOAD_URL" -o "$ARTIFACT"; then
-			echo "-- Succeeded"
-			_end
-			return
-		fi
-
-		TRIES=$((TRIES + 1))
-		echo "-- Download failed, trying again in 5 seconds..."
-		sleep 0
-	done
-
-	echo "-- Download failed after 30 tries, aborting"
-	_end
-	exit 1
-}
-
-# extract the archive + apply patches
-extract() {
-	_group "Extracting $PRETTY_NAME $VERSION"
-	rm -fr "$DIRECTORY"
-
-	case "$ARTIFACT" in
-	*.zip) unzip "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-	*.tar.*) $TAR xf "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-	*.7z) 7z x "$ROOTDIR/$ARTIFACT" >/dev/null ;;
-	esac
-
-	# qt6windows7 patch
-	if [ "$QT6WINDOWS7" = "1" ] && msvc && amd64; then
-		echo "-- Patching for Windows 7"
-
-		curl -L "$QT6WINDOWS7_URL" -o w7.tar.gz
-		$TAR xf w7.tar.gz
-
-		cp -r "$QT6WINDOWS7_DIR"/qtbase/src/* "$DIRECTORY"/qtbase/src
-		rm w7.tar.gz
-	fi
-
-	# solaris patches
-	if [ "$PLATFORM" = "solaris" ]; then
-		cd "$ROOTDIR"
-		curl -L "$SOLARIS_PATCHES_URL" -o "$ROOTDIR/artifacts/solaris-patches-$VERSION.tar.zst"
-		mk/solaris.sh apply
-	fi
-
-	# misc in-tree patches
-	cd "$ROOTDIR/$BUILD_DIR/$DIRECTORY"
-
-	find "$ROOTDIR/patches/$VERSION" -type f -name "*.patch" | while read -r patch; do
-		echo "-- Applying patchset $(basename -- "$patch")"
-		patch -p1 <"$patch"
-	done
-
-	# lmao
-	# -i isn't POSIX compliant but MinGW environments are strictly GNU so it's fine.
-	if mingw && arm; then
-		cd "$ROOTDIR/$BUILD_DIR"
-		sed -i '10i #include <arm_acle.h>' "$DIRECTORY"/qtbase/src/corelib/thread/qyieldcpu.h
-	fi
-
-	_end
-}
 
 # generate sha1, 256, and 512 sums for a file
 sums() {
@@ -149,55 +90,33 @@ sums() {
 	done
 }
 
-# nproc
-num_procs() {
-	# default to 4 because github actions
-	if command -v nproc >/dev/null 2>&1; then
-		nproc
-	elif command -v sysctl >/dev/null 2>&1; then
-		sysctl -n hw.logicalcpu
-	elif command -v getconf >/dev/null 2>&1; then
-		getconf _NPROCESSORS_ONLN
-	else
-		echo 4
-	fi
-}
-
 ## Packaging ##
 strip_libs() {
 	if macos; then
 		find "$OUT_DIR" -type f -name '*.dylib*' -exec strip -u -r {} \;
-	elif unix; then
+	elif linux; then
 		find "$OUT_DIR" -type f -name '*.so*' -exec strip {} \;
 	elif mingw; then
 		find "$OUT_DIR" -type f -name '*.dll' -exec strip {} \;
 	fi
 }
 
+# package
 package() {
 	_group "Packaging"
-
-	# strip shared libs
-	strip_libs
-
-	# remove superfluous fluentwinui3 stuff
-	rm -rf "$OUT_DIR"/qml/QtQuick/Controls/FluentWinUI3
-
 	mkdir -p "$ROOTDIR/artifacts"
 
-	: "${PKGNAME:=$PLATFORM}"
-
-	TARBALL="$FILENAME-$PKGNAME-$ARCH-$VERSION.tar"
+	TARBALL=$FILENAME-$PLATFORM-$ARCH-$VERSION_FULL.tar
 
 	cd "$OUT_DIR"
-	$TAR cf "$ROOTDIR/artifacts/$TARBALL" ./*
+	strip_libs
+	tar cf "$ROOTDIR/artifacts/$TARBALL" ./*
 
 	cd "$ROOTDIR/artifacts"
 	zstd -10 "$TARBALL"
 	rm "$TARBALL"
 
 	sums "$TARBALL.zst"
-
 	_end
 }
 
@@ -206,13 +125,9 @@ TAR="tar"
 SHARED=false
 
 case "$PLATFORM" in
-freebsd | openbsd | solaris)
-	TAR="gtar"
-	SHARED=true
-	;;
-linux)
-	SHARED=true
-	;;
+	*linux)
+		SHARED=true
+		;;
 esac
 
 export TAR
@@ -240,28 +155,10 @@ windows() {
 	msvc || mingw
 }
 
-openbsd() {
-	[ "$PLATFORM" = openbsd ]
-}
-
-freebsd() {
-	[ "$PLATFORM" = freebsd ]
-}
-
-solaris() {
-	[ "$PLATFORM" = solaris ]
-}
-
 arm() {
-	[ "$ARCH" = arm64 ] || [ "$ARCH" = aarch64 ]
+	[ "$ARCH" = aarch64 ]
 }
 
 amd() {
 	[ "$ARCH" = amd64 ]
-}
-
-# get me a unix with no macOS
-# "UNIX with no macOS? Ay Tony, get me a pizza with nuthin'!"
-unix() {
-	linux || freebsd || openbsd || solaris
 }

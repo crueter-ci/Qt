@@ -1,0 +1,47 @@
+#!/bin/sh
+
+# shellcheck disable=SC1091
+
+set -e
+
+. tools/common.sh
+
+# download, store version/artifact names
+download() {
+	_group "Downloading $PRETTY_NAME $VERSION"
+
+	must_install curl
+
+	if [ -n "$GITHUB_RUN_ID" ]; then
+		echo "ARTIFACT=$ARTIFACT" >> "$GITHUB_ENV"
+	fi
+
+	echo "$VERSION_FULL" > VERSION
+
+	echo "-- URL: $DOWNLOAD_URL"
+
+	TRIES=0
+	if [ -f "$ARTIFACT" ]; then
+		echo "-- Already downloaded, skipping"
+		_end
+		return
+	fi
+
+	while [ "$TRIES" -le 30 ]; do
+		if curl -L "$DOWNLOAD_URL" -o "$ARTIFACT"; then
+			echo "-- Succeeded"
+			_end
+			return
+		fi
+
+		TRIES=$((TRIES + 1))
+		echo "-- Download failed, trying again in 5 seconds..."
+		sleep 5
+	done
+
+	echo "-- Download failed after 30 tries, aborting"
+	_end
+	exit 1
+}
+
+download
