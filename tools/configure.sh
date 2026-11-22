@@ -9,6 +9,7 @@ set -e
 ## Buildtime/Input Variables ##
 
 if [ "$PLATFORM" = archlinux ]; then
+	PACKAGE=true
 	PLATFORM=linux
 fi
 
