@@ -12,19 +12,21 @@ else
 	_arch="$ARCH"
 fi
 
-_dir="$ROOTDIR/$_name-$PLATFORM-$_arch-$_version"
+_dir="$_name-$PLATFORM-$_arch-$_version"
+_artifact="$_dir.tar.zst"
 
-_download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_name-$PLATFORM-$ARCH-$_version.tar.zst"
-_artifact="$_name-$PLATFORM-$ARCH-$_version.tar.zst"
+_download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_artifact"
 
-if [ ! -d "$_dir" ]; then
+_fulldir="$ROOTDIR/$_dir"
+
+if [ ! -d "$_fulldir" ]; then
 	_group "Downloading $_repo"
 	echo "$_download"
 	[ -f "$_artifact" ] || curl -L "$_download" -o "$_artifact"
-	mkdir -p "$_dir"
-	$TAR xf "$_artifact" -C "$_dir"
-	rm -f "$_dir"/CMakeLists.txt
+	mkdir -p "$_fulldir"
+	$TAR xf "$_artifact" -C "$_fulldir"
+	rm -f "$_fulldir"/CMakeLists.txt
 	_end
 fi
 
-export FFMPEG_DIR="$_dir"
+export FFMPEG_DIR="$_fulldir"
