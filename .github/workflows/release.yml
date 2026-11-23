@@ -1,0 +1,90 @@
+name: Release
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: qt version
+        type: string
+        required: true
+      release:
+        description: create a release
+        type: boolean
+        default: true
+      repo:
+        description: release repository
+        type: string
+        default: crueter-ci/Qt
+      submodules:
+        description: submodules to use
+        type: string
+        required: false
+
+permissions:
+  contents: write
+
+env:
+  VERSION_FULL: unset
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-slim
+    if: always() && inputs.release && !cancelled() && !failure()
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download Version
+        uses: actions/download-artifact@v8
+        with:
+          name: VERSION
+          path: .
+
+      - name: Get Version
+        run: echo "VERSION_FULL=$(cat VERSION)" >> "$GITHUB_ENV"
+
+      - name: Download
+        uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+
+      - name: Release
+        uses: softprops/action-gh-release@v3
+        with:
+          name: Qt ${{ env.VERSION_FULL }}
+          tag_name: ${{ env.VERSION_FULL }}
+          files: '*.tar.zst*'
+          make_latest: true
+          token: ${{ secrets.GH_TOKEN }}
+
+  fake-release:
+    name: Fake Release
+    runs-on: ubuntu-slim
+    if: always() && !inputs.release && !cancelled() && !failure()
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download Version
+        uses: actions/download-artifact@v8
+        with:
+          name: VERSION
+          path: .
+
+      - name: Get Version
+        run: echo "VERSION_FULL=$(cat VERSION)" >> "$GITHUB_ENV"
+
+      - name: Download
+        uses: actions/download-artifact@v8
+        with:
+          merge-multiple: true
+
+      - name: Test
+        run: |
+          echo "Version: $VERSION_FULL"
+          echo
+
+      - name: Check artifacts
+        run:
+          find . -name "*.tar.zst*"

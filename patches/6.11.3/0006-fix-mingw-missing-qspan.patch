@@ -1,0 +1,24 @@
+From f7c018abe522f0ce5617642b77947126fd80e498 Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Sun, 22 Nov 2026 17:27:38 -0500
+Subject: [PATCH] fix mingw missing qspan
+
+---
+ qtbase/src/corelib/thread/qthread_win.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/qtbase/src/corelib/thread/qthread_win.cpp b/qtbase/src/corelib/thread/qthread_win.cpp
+index 2795d82d..04368fb1 100644
+--- a/qtbase/src/corelib/thread/qthread_win.cpp
++++ b/qtbase/src/corelib/thread/qthread_win.cpp
+@@ -6,6 +6,7 @@
+ #include "qthread_p.h"
+ 
+ #include "qcoreapplication.h"
++#include "qspan.h"
+ #include <private/qcoreapplication_p.h>
+ #include <private/qeventdispatcher_win_p.h>
+ #include "qloggingcategory.h"
+-- 
+2.56.1
+

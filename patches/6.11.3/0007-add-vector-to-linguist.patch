@@ -1,0 +1,24 @@
+From 9aa6dbeecd6aded5cf9a12c92fe1e7d8563d2cc5 Mon Sep 17 00:00:00 2001
+From: crueter <crueter@eden-emu.dev>
+Date: Sun, 22 Nov 2026 18:46:02 -0500
+Subject: [PATCH] add vector to linguist
+
+---
+ qttools/src/linguist/shared/releasehelper.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/qttools/src/linguist/shared/releasehelper.h b/qttools/src/linguist/shared/releasehelper.h
+index 0da629db..fa5c7bd3 100644
+--- a/qttools/src/linguist/shared/releasehelper.h
++++ b/qttools/src/linguist/shared/releasehelper.h
+@@ -5,6 +5,7 @@
+ #define RELEASEHELPER_H
+ 
+ #include <QtCore/qstringlist.h>
++#include <vector>
+ 
+ QT_BEGIN_NAMESPACE
+ 
+-- 
+2.56.1
+

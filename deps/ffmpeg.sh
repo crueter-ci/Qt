@@ -3,19 +3,30 @@
 _version=8.2-f16c3cc5aa
 _repo=FFmpeg-Qt
 _name=ffmpeg
-_dir="$ROOTDIR/$_name-$PLATFORM-$ARCH-$_version"
 
-_download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_name-$PLATFORM-$ARCH-$_version.tar.zst"
-_artifact="$_name-$PLATFORM-$ARCH-$_version.tar.zst"
+if [ "$PLATFORM" = macos ]; then
+	_arch=universal
+elif [ "$PLATFORM" != linux ] && [ "$ARCH" = aarch64 ]; then
+	_arch=arm64
+else
+	_arch="$ARCH"
+fi
 
-if [ ! -d "$_dir" ]; then
+_dir="$_name-$PLATFORM-$_arch-$_version"
+_artifact="$_dir.tar.zst"
+
+_download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_artifact"
+
+_fulldir="$ROOTDIR/$_dir"
+
+if [ ! -d "$_fulldir" ]; then
 	_group "Downloading $_repo"
 	echo "$_download"
 	[ -f "$_artifact" ] || curl -L "$_download" -o "$_artifact"
-	mkdir -p "$_dir"
-	$TAR xf "$_artifact" -C "$_dir"
-	rm -f "$_dir"/CMakeLists.txt
+	mkdir -p "$_fulldir"
+	$TAR xf "$_artifact" -C "$_fulldir"
+	rm -f "$_fulldir"/CMakeLists.txt
 	_end
 fi
 
-export FFMPEG_DIR="$_dir"
+export FFMPEG_DIR="$_fulldir"

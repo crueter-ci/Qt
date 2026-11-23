@@ -9,15 +9,19 @@ permissions:
   contents: write
 
 jobs:
-  qt-6-11-1:
-    name: Qt 6.11.1
+  build:
+    name: Build
     uses: ./.github/workflows/platforms.yml
     secrets: inherit
     with:
-      build-windows: true
-      build-linux: true
-      build-macos: true
-      version: 6.11.1
-      release: true
+      version: 6.11.3
       submodules: qtbase,qttools,qtmultimedia
+
+  release:
+    needs: build
+    uses: ./.github/workflows/release.yml
+    secrets: inherit
+    with:
+      version: 6.11.3
+      release: true
       repo: crueter-ci/Qt

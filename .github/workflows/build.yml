@@ -1,0 +1,221 @@
+name: Build Qt
+
+on:
+  workflow_call:
+    inputs:
+      build-windows:
+        description: build windows
+        type: boolean
+        default: true
+      build-linux:
+        description: build linux
+        type: boolean
+        default: true
+      build-macos:
+        description: build macOS
+        type: boolean
+        default: true
+      version:
+        description: qt version
+        type: string
+        required: true
+      submodules:
+        description: submodules to use
+        type: string
+        required: false
+
+env:
+  CCACHE: "true"
+  VERSION: ${{ inputs.version }}
+  SUBMODULES: ${{ inputs.submodules }}
+  ARTIFACT: unset
+  VERSION_FULL: unset
+  DIRECTORY: unset
+  SCCACHE_GHA_ENABLED: "true"
+
+jobs:
+  download:
+    runs-on: ubuntu-slim
+
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Download
+        run: ./tools/download.sh
+
+      - name: Upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: source
+          path: ${{ env.ARTIFACT }}
+          archive: false
+
+      - name: Upload Timestamp
+        uses: actions/upload-artifact@v7
+        with:
+          name: timestamp
+          path: TIMESTAMP
+          archive: false
+
+      - name: Upload Version
+        uses: actions/upload-artifact@v7
+        with:
+          name: version
+          path: VERSION
+          archive: false
+
+      - name: Generate Build Matrix
+        id: matrix
+        run: |
+          echo "matrix=$(./tools/matrix.sh)" >> "$GITHUB_OUTPUT"
+          tools/matrix.sh
+
+  build:
+    needs: [download]
+    name: "${{ matrix.platform }} (${{ matrix.arch }})"
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.download.outputs.matrix) }}
+
+    container: ${{ matrix.container }}
+
+    defaults:
+      run:
+        shell: >-
+          ${{ case(
+            matrix.platform == 'windows', 'pwsh',
+            matrix.platform == 'mingw', 'msys2 {0}',
+            'bash'
+          ) }}
+
+    env:
+      BASH_SHELL: ${{ matrix.platform == 'mingw' && 'msys2 {0}' || 'bash' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Setup
+      - name: Setup sccache
+        uses: mozilla-actions/sccache-action@v0.0.11
+
+      - name: Install dependencies (MSVC)
+        uses: crueter-ci/install-tools@master
+        if: matrix.platform == 'windows'
+        with:
+          vulkan: true
+          zstd: true
+
+      - name: Install dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: ./deps/linux.sh
+
+      - name: Install dependencies (Arch Linux)
+        if: matrix.platform == 'archlinux'
+        run: ./deps/arch.sh
+
+      - name: Install dependencies (macOS)
+        if: matrix.platform == 'macos'
+        run: ./deps/macos.sh
+
+      - name: Setup MSVC
+        if: matrix.platform == 'windows'
+        uses: crueter/setup-msvc-dev@master
+
+      - uses: lukka/get-cmake@latest
+        if: matrix.platform == 'windows'
+
+      - name: Fix MSVC being stupid
+        if: matrix.platform == 'windows'
+        shell: cmd
+        run: mklink /D "C:\Program Files\Microsoft Visual Studio\18\Community" "C:\Program Files\Microsoft Visual Studio\18\Enterprise"
+
+      - name: Setup MSYS2 environment
+        uses: msys2/setup-msys2@v2
+        if: matrix.platform == 'mingw'
+        with:
+          msystem: ${{ matrix.arch == 'amd64' && 'ucrt64' || 'clangarm64' }}
+          update: true
+          install: >-
+            git make unzip pkgconf diffutils patch
+          pacboy: >-
+            toolchain:p vulkan-devel:p pkg-config:p
+            cmake:p ninja:p ccache:p libjpeg-turbo:p
+            zlib:p libpng:p double-conversion:p
+            freetype:p libtiff:p
+          cache: false
+
+      - name: Download Timestamp
+        uses: actions/download-artifact@v8
+        with:
+          name: TIMESTAMP
+          path: .
+
+      - name: Setup Environment
+        shell: bash
+        run: |
+          . tools/vars.sh
+          {
+            echo "DIRECTORY=$DIRECTORY"
+            echo "ARTIFACT=$ARTIFACT"
+            echo "OUT_DIR=$GITHUB_WORKSPACE/out"
+            echo "BUILD_DIR=$GITHUB_WORKSPACE/build"
+            echo "VERSION_FULL=$VERSION_FULL"
+
+            echo "ARCH=${{ matrix.arch }}"
+            echo "PLATFORM=${{ matrix.platform }}"
+            echo "CCACHE_PATH=${SCCACHE_PATH}"
+          } >> "$GITHUB_ENV"
+
+          mkdir -p out
+
+      # Download + extract
+      - name: Download
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.ARTIFACT }}
+          path: .
+
+      - name: Disable Windows Defender
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Set-MpPreference -DisableRealtimeMonitoring $true
+          Set-MpPreference -DisableBehaviorMonitoring $true
+          Set-MpPreference -DisableArchiveScanning $true
+
+      - name: Extract
+        run: tar xf ${{ env.ARTIFACT}}
+
+      - name: Apply Patches
+        run: bash ./tools/patch.sh
+
+      # configure
+      - name: Configure
+        run: bash ./tools/configure.sh
+
+      - name: Build
+        run: cmake --build . --parallel
+        working-directory: ${{ env.DIRECTORY}}
+
+      - name: Package
+        run: bash ./tools/package.sh
+
+      - name: Upload Tarball
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}-${{ env.VERSION_FULL }}
+          path: artifacts/*.tar.zst
+          archive: false
+
+      - name: Upload Sum
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.platform }}-${{ matrix.arch }}-${{ env.VERSION_FULL }}-sha512sum
+          path: artifacts/*.tar.zst.sha512sum
+          archive: false
