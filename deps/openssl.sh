@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-_version=4.0.1-1795402040-b64f68a94e
+_version=4.0.1-1795404402-b64f68a94e
 _repo=OpenSSL-Qt
 _name=openssl
 
