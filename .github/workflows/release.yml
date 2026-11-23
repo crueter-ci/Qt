@@ -53,7 +53,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           name: Qt ${{ env.VERSION_FULL }}
-          tag_name: v${{ env.VERSION_FULL }}
+          tag_name: ${{ env.VERSION_FULL }}
           files: '*.tar.zst*'
           make_latest: true
           token: ${{ secrets.GH_TOKEN }}
