@@ -56,6 +56,7 @@ jobs:
           tag_name: ${{ env.VERSION_FULL }}
           files: '*.tar.zst*'
           make_latest: true
+          repository: ${{ inputs.repo }}
           token: ${{ secrets.GH_TOKEN }}
 
   fake-release:

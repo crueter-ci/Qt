@@ -1,18 +1,10 @@
 #!/bin/sh -e
 
-_version=3.6.0-1cb0d36b39
+_version=4.0.1-1795399509-b64f68a94e
 _repo=OpenSSL-Qt
 _name=openssl
 
-if [ "$PLATFORM" = macos ]; then
-	_arch=universal
-elif [ "$PLATFORM" != linux ] && [ "$ARCH" = aarch64 ]; then
-	_arch=arm64
-else
-	_arch="$ARCH"
-fi
-
-_dir="$_name-$PLATFORM-$_arch-$_version"
+_dir="$_name-$PLATFORM-$ARCH-$_version"
 _artifact="$_dir.tar.zst"
 
 _download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_artifact"
