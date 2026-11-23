@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-_version=https://www.papytane.com/mp4/airelles.mp4
+_version=9.0.2-1795401592-946fcce07b
 _repo=FFmpeg-Qt
 _name=ffmpeg
 
