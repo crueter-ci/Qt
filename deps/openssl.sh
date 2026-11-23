@@ -7,7 +7,7 @@ _name=openssl
 _dir="$_name-$PLATFORM-$ARCH-$_version"
 _artifact="$_dir.tar.zst"
 
-_download="https://github.com/crueter-ci/$_repo/releases/download/v$_version/$_artifact"
+_download="https://github.com/crueter-ci/$_repo/releases/download/$_version/$_artifact"
 
 _fulldir="$ROOTDIR/$_dir"
 
